@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\TrackController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -14,6 +16,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+Route::prefix('tracks')->group(function () {
+    Route::get('/', [TrackController::class, 'index']);
+    Route::get('/{track:id}', [TrackController::class, 'show']);
+    Route::post('/', [TrackController::class, 'store']);
+    Route::put('/{track:id}', [TrackController::class, 'update']);
+    Route::delete('/{track:id}', [TrackController::class, 'destroy']);
 });
