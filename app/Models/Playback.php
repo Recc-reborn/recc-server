@@ -8,4 +8,5 @@ use Illuminate\Database\Eloquent\Model;
 class Playback extends Model
 {
     use HasFactory;
+    protected $fillable = ['trackId'];
 }

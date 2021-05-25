@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\PlaybackController;
 use App\Http\Controllers\TrackController;
 
 /*
@@ -24,3 +25,8 @@ Route::name('tracks.')->prefix('tracks')->group(function () {
     Route::delete('/{track:id}', [TrackController::class, 'destroy'])
            ->name('destroy');
 });
+
+Route::name('playback')->prefix('playback')->group(function() {
+    Route::post('/{}', [PlaybackController::class, 'store'])->name('store');
+    Route::delete('/destroy', [PlaybackController::class, 'destroy'])->name('destroy');
+})

@@ -16,6 +16,7 @@ class CreatePlaybacksTable extends Migration
         Schema::create('playbacks', function (Blueprint $table) {
             $table->id();
             $table->datetime('created_at')->default('now');
+            $table->foreignId('track_id');
         });
     }
 
