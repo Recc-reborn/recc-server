@@ -26,7 +26,7 @@ Route::name('tracks.')->prefix('tracks')->group(function () {
            ->name('destroy');
 });
 
-Route::name('playback')->prefix('playback')->group(function() {
-    Route::post('/{}', [PlaybackController::class, 'store'])->name('store');
-    Route::delete('/destroy', [PlaybackController::class, 'destroy'])->name('destroy');
-})
+Route::name('playbacks.')->prefix('playbacks')->group(function () {
+    Route::post('/', [PlaybackController::class, 'store'])->name('store');
+    Route::delete('/{playback:id}', [PlaybackController::class, 'destroy'])->name('destroy');
+});
