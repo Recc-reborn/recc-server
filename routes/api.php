@@ -16,10 +16,11 @@ use App\Http\Controllers\TrackController;
 |
 */
 
-Route::prefix('tracks')->group(function () {
-    Route::get('/', [TrackController::class, 'index']);
-    Route::get('/{track:id}', [TrackController::class, 'show']);
-    Route::post('/', [TrackController::class, 'store']);
-    Route::put('/{track:id}', [TrackController::class, 'update']);
-    Route::delete('/{track:id}', [TrackController::class, 'destroy']);
+Route::name('tracks.')->prefix('tracks')->group(function () {
+    Route::get('/', [TrackController::class, 'index'])->name('index');
+    Route::get('/{track:id}', [TrackController::class, 'show'])->name('show');
+    Route::post('/', [TrackController::class, 'store'])->name('store');
+    Route::put('/{track:id}', [TrackController::class, 'update'])->name('update');
+    Route::delete('/{track:id}', [TrackController::class, 'destroy'])
+           ->name('destroy');
 });
