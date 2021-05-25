@@ -15,7 +15,7 @@ class CreatePlaybacksTable extends Migration
     {
         Schema::create('playbacks', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->datetime('created_at')->default('now');
         });
     }
 
