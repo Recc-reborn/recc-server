@@ -17,7 +17,7 @@ class CreatePlaybacksTable extends Migration
             $table->id();
             $table->datetime('created_at')->useCurrent();
             $table->foreignId('track_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            /* $table->foreignId('user_id')->constrained()->onDelete('cascade'); */
         });
     }
 
