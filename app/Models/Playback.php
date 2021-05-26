@@ -11,7 +11,8 @@ class Playback extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['track_id'];
+    protected $fillable = ['track_id', 'user_id'];
+
     public function track()
     {
         return $this->belongsTo(Track::class);

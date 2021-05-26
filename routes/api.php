@@ -28,7 +28,7 @@ Route::name('tracks.')->prefix('tracks')->group(function () {
 });
 
 Route::name('playbacks.')->prefix('playbacks')->group(function () {
-    Route::post('/', [PlaybackController::class, 'store'])->name('store');
+    Route::post('/', [PlaybackController::class, 'store'])->name('store')->middleware('auth.basic');
     Route::delete('/{playback:id}', [PlaybackController::class, 'destroy'])->name('destroy');
 });
 
