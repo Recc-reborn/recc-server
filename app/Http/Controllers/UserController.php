@@ -4,9 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
+    /**
+     * Returns current user
+     */
+    public function get()
+    {
+        if (Auth::check()) {
+            return Auth::user();
+        } else {
+            return response('Unauthenticated', 401);
+        }
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -25,7 +39,9 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        return User::create($request->all());
+        $userInfo = array_merge($request->all(), ['role' => 'user', 'password' => Hash::make($request->password)]);
+
+        return User::create($userInfo);
     }
 
     /**
