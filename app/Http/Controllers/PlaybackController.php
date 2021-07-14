@@ -15,8 +15,8 @@ class PlaybackController extends Controller
         ]);
     }
 
-    public function destroy($id)
+    public function destroy(Playback $playback)
     {
-        Playback::findOrFail($id)->delete();
+        $playback->delete();
     }
 }
