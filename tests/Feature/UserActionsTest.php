@@ -39,7 +39,7 @@ class UserActionsTest extends TestCase
     {
         $user = User::factory()->make();
 
-        $response = $this->post(
+        $response = $this->postJson(
             route('users.store'),
             $user->toArray()
         );
@@ -79,5 +79,27 @@ class UserActionsTest extends TestCase
         );
 
         $response->assertNotFound();
+    }
+
+    public function test_gets_error_on_wrong_credentials()
+    {
+        $user = User::factory()->create();
+
+        $response = $this->postJson(
+            route(
+                'auth.token',
+                [
+                    'email' => $user->email,
+                    'password' => $user->password . 'something_else_so_its_not_correct',
+                    'device_name' => 'some_device'
+                ]
+            )
+        );
+
+        // Unprocessable Entity
+        $response->assertStatus(422);
+
+        // cleanup
+        $user->delete();
     }
 }
