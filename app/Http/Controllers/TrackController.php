@@ -75,4 +75,42 @@ class TrackController extends Controller
         return $this->getTracks($this->getTracksIds($top));
     }
 
+    private function removeItemFromCollection(Collection $collection, $valueToRemove) {
+        foreach ($collection as $key => $value) {
+            if ($value == $valueToRemove) {
+                $collection->forget($key);
+            }
+        }
+    }
+
+    public function recommendationsByPopularity() {
+        $userId = Auth::id();
+        $topTracksIds = $this->getTracksIds(self::TOP_SIZE);
+        $possibleRecommendations = $topTracksIds->keys();
+        $recommendations = collect([]);
+        for ($recommendationsMade = 0; $recommendationsMade < self::NUMBER_OF_RECOMMENDATIONS; ++$recommendationsMade) {
+            $possibleRecommendation = $possibleRecommendations->random();
+            $playbackExists = Playback::where('user_id', $userId)->where('track_id', $possibleRecommendation)->count() > 0;
+            if ($playbackExists) {
+                $recommendationsMade--;
+            } else {
+                $recommendations = $recommendations->concat([$possibleRecommendation]);
+            }
+            $this->removeItemFromCollection($possibleRecommendations, $possibleRecommendation);
+            if ($possibleRecommendations->isEmpty() && $recommendationsMade < self::NUMBER_OF_RECOMMENDATIONS) {
+                foreach ($recommendations as $recommendation) {
+                    $topTracksIds->forget($recommendation);
+                }
+                $recommendationsLeft = $topTracksIds->keys();
+                while ($recommendationsMade < self::NUMBER_OF_RECOMMENDATIONS) {
+                    $currentRecommendation = $recommendationsLeft->random();
+                    $recommendations = $recommendations->concat([$currentRecommendation]);
+                    $this->removeItemFromCollection($recommendationsLeft, $currentRecommendation);
+                    $recommendationsMade = $recommendations->count();
+                }
+            }
+        }
+        return $recommendations;
+    }
+
 }
