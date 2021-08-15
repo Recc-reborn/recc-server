@@ -33,6 +33,10 @@ Route::name('popular-tracks.')->prefix('popular/tracks')->group(function () {
     Route::get('/all-time/top/{top}', [TrackController::class, 'allTimeTop'])->name("all-time-top");
 });
 
+Route::name('popular-recommendations.')->prefix('popular/recommendations')->group(function () {
+    Route::get('/', [TrackController::class, 'recommendationsByPopularity'])->name('index');
+});
+
 Route::name('playbacks.')->prefix('playbacks')->group(function () {
     Route::post('/', [PlaybackController::class, 'store'])->name('store')->middleware('auth.basic');
     Route::delete('/{playback:id}', [PlaybackController::class, 'destroy'])->name('destroy');
