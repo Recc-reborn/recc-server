@@ -28,6 +28,11 @@ Route::name('tracks.')->prefix('tracks')->group(function () {
            ->name('destroy');
 });
 
+Route::name('popular-tracks.')->prefix('popular/tracks')->group(function () {
+    Route::get('/all-time', [TrackController::class, 'allTimePopulars'])->name('all-time');
+    Route::get('/all-time/top/{top}', [TrackController::class, 'allTimeTop'])->name("all-time-top");
+});
+
 Route::name('playbacks.')->prefix('playbacks')->group(function () {
     Route::post('/', [PlaybackController::class, 'store'])->name('store')->middleware('auth.basic');
     Route::delete('/{playback:id}', [PlaybackController::class, 'destroy'])->name('destroy');
