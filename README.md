@@ -2,6 +2,9 @@
 
 Este es el repositorio de la API de Recc.
 
+## Especificación de la API
+https://recc-moduleirors.postman.co/workspace/e51eb72d-9f8a-4cb2-99d2-f4fde72cd292
+
 ## Instalación
 
 Clone primero el repositorio:
@@ -37,3 +40,4 @@ Para correr el servidor ejecute el siguiente comando una vez terminada la instal
 ## Correr pruebas
 
     php artisan test
+
