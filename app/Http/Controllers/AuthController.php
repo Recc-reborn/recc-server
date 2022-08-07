@@ -42,14 +42,12 @@ class AuthController extends Controller
 
     /**
      * Revokes user's current access token
+     * Session is validated by Sanctum
      */
     public function unauthenticate(Request $request)
     {
-        if (Auth::check()) {
-            $user = Auth::user();
-            $user->currentAccessToken()->delete();
-        } else {
-            return response('Unauthenticated', 401);
-        }
+        $user = Auth::user();
+        $user->currentAccessToken()->delete();
+        return response()->json([ 'message' => 'Se ha invalidado el token' ]);
     }
 }
