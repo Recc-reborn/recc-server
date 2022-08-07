@@ -16,15 +16,18 @@ class UserActionsTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)
-                         ->get(route('users.get'));
+                         ->getJson(route('users.get'));
 
         $response->assertStatus(200);
         $response->assertJson($user->toArray());
     }
 
-    public function test_can_get_index()
+    public function test_can_get_index_when_authenticated()
     {
-        $response = $this->get(route('users.index'));
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)
+                         ->getJson(route('users.index'));
 
         $response->assertStatus(200);
         $response->assertJsonStructure([
@@ -34,6 +37,12 @@ class UserActionsTest extends TestCase
                 "name",
             ]
         ]);
+    }
+
+    public function test_unauthenticated_users_are_unable_to_get_user_index()
+    {
+        $response = $this->getJson(route('users.index'));
+        $response->assertStatus(401);
     }
 
     public function test_can_create_user()
