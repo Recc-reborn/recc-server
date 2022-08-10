@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 use App\Models\User;
@@ -15,15 +16,18 @@ class UserActionsTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)
-                         ->get(route('users.get'));
+                         ->getJson(route('users.get'));
 
         $response->assertStatus(200);
         $response->assertJson($user->toArray());
     }
 
-    public function test_can_get_index()
+    public function test_can_get_index_when_authenticated()
     {
-        $response = $this->get(route('users.index'));
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)
+                         ->getJson(route('users.index'));
 
         $response->assertStatus(200);
         $response->assertJsonStructure([
@@ -35,13 +39,23 @@ class UserActionsTest extends TestCase
         ]);
     }
 
+    public function test_unauthenticated_users_are_unable_to_get_user_index()
+    {
+        $response = $this->getJson(route('users.index'));
+        $response->assertStatus(401);
+    }
+
     public function test_can_create_user()
     {
         $user = User::factory()->make();
 
         $response = $this->postJson(
             route('users.store'),
-            $user->toArray()
+            [
+                "email" => $user->email,
+                "name" => $user->name,
+                "password" => $user->password
+            ]
         );
 
         $response->assertCreated();
@@ -50,6 +64,40 @@ class UserActionsTest extends TestCase
             "email",
             "role"
         ]);
+    }
+
+    public function test_validates_user_email()
+    {
+        // Create a new user
+        $firstUserWithThisEmail = User::factory()->create();
+
+        // Try to register a new user with the same email
+        $response = $this->postJson(
+            route('users.store'),
+            [
+                "name" => "John Doe",
+                "email" => $firstUserWithThisEmail->email,
+                "password" => "SuperSecret"
+            ]
+        );
+
+        $response->assertStatus(422);
+        $response->assertJsonStructure([
+            "message",
+            "errors" => ["email"],
+        ]);
+    }
+
+    public function test_validates_user_store_request()
+    {
+        $response = $this->postJson(
+            route('users.store'),
+            [
+                "email" => "",
+            ]
+        );
+
+        $response->assertStatus(422);
     }
 
     public function test_can_show_user()
@@ -81,6 +129,27 @@ class UserActionsTest extends TestCase
         $response->assertNotFound();
     }
 
+    public function test_can_log_in()
+    {
+        $user = User::factory()->make();
+        $user->password = Hash::make('123456789');
+        $user->save();
+
+        $response = $this->postJson(
+            route(
+                'auth.token',
+                [
+                    'email' => $user->email,
+                    'password' => '123456789',
+                    'device_name' => 'some_device'
+                ]
+            )
+        );
+
+        $response->assertOk();
+        $response->assertJsonStructure(['token']);
+    }
+
     public function test_gets_error_on_wrong_credentials()
     {
         $user = User::factory()->create();
@@ -90,16 +159,12 @@ class UserActionsTest extends TestCase
                 'auth.token',
                 [
                     'email' => $user->email,
-                    'password' => $user->password . 'something_else_so_its_not_correct',
+                    'password' => 'some_incorrect_password',
                     'device_name' => 'some_device'
                 ]
             )
         );
 
-        // Unprocessable Entity
         $response->assertStatus(422);
-
-        // cleanup
-        $user->delete();
     }
 }

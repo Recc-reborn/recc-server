@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -39,7 +40,21 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            "email" => "email|required",
+            "name" => "required",
+            "password" => "required"
+        ]);
+
         $userInfo = array_merge($request->all(), ['role' => 'user', 'password' => Hash::make($request->password)]);
+
+        $isEmailTaken = User::where(['email' => $request->email])->exists();
+
+        if ($isEmailTaken) {
+            throw ValidationException::withMessages([
+                'email' => ['Ya existe un usuario con este correo electrónico'],
+            ]);
+        }
 
         return User::create($userInfo);
     }

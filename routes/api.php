@@ -44,7 +44,7 @@ Route::name('playbacks.')->prefix('playbacks')->group(function () {
 
 Route::name('users.')->prefix('users')->group(function () {
     Route::get('/me', [UserController::class, 'get'])->middleware('auth:sanctum')->name('get');
-    Route::get('/', [UserController::class, 'index'])->name('index');
+    Route::get('/', [UserController::class, 'index'])->middleware('auth:sanctum')->name('index');
     Route::post('/', [UserController::class, 'store'])->name('store');
     Route::get('/{user:id}', [UserController::class, 'show'])->name('show');
     Route::put('/{user:id}', [UserController::class, 'update'])->name('update');

@@ -25,12 +25,11 @@ class AuthController extends Controller
         $request->validate([
             'email' => 'required',
             'password' => 'required',
-            'device_name' => 'required'
         ]);
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || ! Hash::check($request->password, $user->password)) {
+        if (!$user || !Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['Las credenciales provistas son incorrectas'],
             ]);
@@ -43,14 +42,12 @@ class AuthController extends Controller
 
     /**
      * Revokes user's current access token
+     * Session is validated by Sanctum
      */
     public function unauthenticate(Request $request)
     {
-        if (Auth::check()) {
-            $user = Auth::user();
-            $user->currentAccessToken()->delete();
-        } else {
-            return response('Unauthenticated', 401);
-        }
+        $user = Auth::user();
+        $user->currentAccessToken()->delete();
+        return response()->json([ 'message' => 'Se ha invalidado el token' ]);
     }
 }
