@@ -35,6 +35,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'set_preferred_artists_at',
     ];
 
     /**
@@ -46,6 +47,15 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = [
+        'has_set_preferred_artists'
+    ];
+
     public function preferredArtists() : BelongsToMany
     {
         return $this->belongsToMany(Artist::class, 'preferred_artists', 'user_id', 'artist_id');
@@ -54,10 +64,19 @@ class User extends Authenticatable
     public function addPreferredArtists(Array $artistIds)
     {
         $this->preferredArtists()->syncWithoutDetaching($artistIds);
+        $this->set_preferred_artists_at = now();
+        $this->save();
     }
 
     public function removePreferredArtists(Array $artistIds)
     {
         $this->preferredArtists()->detach($artistIds);
+    }
+
+    public function hasSetPreferredArtists(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => !empty($this->set_preferred_artists_at)
+        );
     }
 }
