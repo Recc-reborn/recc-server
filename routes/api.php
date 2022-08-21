@@ -52,6 +52,15 @@ Route::name('users.')->prefix('users')->group(function () {
     Route::delete('/{user:id}', [UserController::class, 'destroy'])->name('destroy');
 });
 
+// Specific for the current user
+Route::name('user.')->prefix('user')->group(function () {
+    Route::name('preferred-artists')->group(function () {
+        Route::get('/preferred-artists', [UserController::class, 'getPreferredArtists']);
+        Route::patch('/preferred-artists', [UserController::class, 'addPreferredArtists']);
+        Route::delete('/preferred-artists', [UserController::class, 'removePreferredArtists']);
+    });
+});
+
 Route::name('artists.')->prefix('artists')->group(function () {
     Route::get('/', [ArtistController::class, 'index'])->name('index');
 });

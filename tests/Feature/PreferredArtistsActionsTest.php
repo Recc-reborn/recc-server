@@ -25,7 +25,7 @@ class PreferredArtistsActionsTest extends TestCase
         // create artists
         $newPreferredArtists = Artist::factory()->count(10)->create();
         // get their IDs for the request
-        $this->preferredArtistIds =$newPreferredArtists->pluck('id');
+        $this->preferredArtistIds =$newPreferredArtists->pluck('id')->toArray();
     }
 
     /**
@@ -35,12 +35,12 @@ class PreferredArtistsActionsTest extends TestCase
     public function test_can_set_preferred_artists()
     {
 
-        $this->actingAs($this->user)->postJson(
+        $response = $this->actingAs($this->user)->patchJson(
             route('user.preferred-artists'),
             $this->preferredArtistIds
         );
 
-        $this->assertOk();
+        $response->assertOk();
     }
 
     /**
@@ -51,13 +51,12 @@ class PreferredArtistsActionsTest extends TestCase
     public function test_preferred_artists_are_correctly_stored()
     {
 
-        $this->actingAs($this->user)->getJson(
-            route('user.preferred-artists'),
-            $this->preferredArtistIds
+        $response = $this->actingAs($this->user)->getJson(
+            route('user.preferred-artists')
         );
 
-        $this->assertOk();
-        $this->assertJsonCount(count($this->preferredArtistIds));
+        $response->assertOk();
+        $response->assertJsonCount(count($this->preferredArtistIds));
     }
 
     /**
@@ -66,12 +65,12 @@ class PreferredArtistsActionsTest extends TestCase
      */
     public function test_can_remove_preferred_artists()
     {
-        $this->actingAs($this->user)->deleteJson(
+        $response = $this->actingAs($this->user)->deleteJson(
             route('user.preferred-artists'),
             $this->preferredArtistIds
         );
 
-        $this->assertOk();
+        $response->assertOk();
     }
 
     /**
@@ -81,12 +80,11 @@ class PreferredArtistsActionsTest extends TestCase
      */
     public function test_preferred_artists_are_correctly_removed()
     {
-        $this->actingAs($this->user)->getJson(
-            route('user.preferred-artists'),
-            $this->preferredArtistIds
+        $response = $this->actingAs($this->user)->getJson(
+            route('user.preferred-artists')
         );
 
-        $this->assertOk();
-        $this->assertJsonCount(0);
+        $response->assertOk();
+        $response->assertJsonCount(0);
     }
 }
