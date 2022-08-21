@@ -53,7 +53,7 @@ Route::name('users.')->prefix('users')->group(function () {
 });
 
 // Specific for the current user
-Route::name('user.')->prefix('user')->group(function () {
+Route::name('user.')->prefix('user')->middleware('auth:sanctum')->group(function () {
     Route::name('preferred-artists')->group(function () {
         Route::get('/preferred-artists', [UserController::class, 'getPreferredArtists']);
         Route::patch('/preferred-artists', [UserController::class, 'addPreferredArtists']);

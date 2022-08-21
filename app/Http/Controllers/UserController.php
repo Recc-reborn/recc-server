@@ -96,4 +96,33 @@ class UserController extends Controller
     {
         $user->delete();
     }
+
+    /**
+     * Add preferred artists for this user
+     */
+    public function addPreferredArtists(Request $request)
+    {
+        $user = $request->user();
+        // $request->all() should return a list of artist IDs
+        $user->addPreferredArtists($request->all());
+    }
+
+    /**
+     * Get this user's preferred artists' IDs
+     */
+    public function getPreferredArtists(Request $request)
+    {
+        $user = $request->user();
+        return response()->json($user->preferredArtists()->getRelatedIds());
+    }
+
+    /**
+     * Remove preferred artists for this user
+     */
+    public function removePreferredArtists(Request $request)
+    {
+        $user = $request->user();
+        // $request->all() should return a list of artist IDs
+        $user->removePreferredArtists($request->all());
+    }
 }
