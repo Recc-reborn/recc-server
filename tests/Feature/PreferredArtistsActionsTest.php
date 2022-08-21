@@ -9,6 +9,7 @@ use Tests\TestCase;
 
 use App\Models\Artist;
 use App\Models\User;
+use Database\Seeders\ArtistsTableSeeder;
 
 class PreferredArtistsActionsTest extends TestCase
 {
@@ -20,12 +21,15 @@ class PreferredArtistsActionsTest extends TestCase
     public function setUp() : void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
 
-        // create artists
-        $newPreferredArtists = Artist::factory()->count(10)->create();
-        // get their IDs for the request
-        $this->preferredArtistIds =$newPreferredArtists->pluck('id')->toArray();
+        $this->user = User::factory()->create();
+        $this->seed(ArtistsTableSeeder::class);
+
+        $this->preferredArtistIds =
+            Artist::all()
+             ->random(5)
+             ->pluck('id')
+             ->toArray();
     }
 
     /**
@@ -34,29 +38,19 @@ class PreferredArtistsActionsTest extends TestCase
      */
     public function test_can_set_preferred_artists()
     {
-
         $response = $this->actingAs($this->user)->patchJson(
             route('user.preferred-artists'),
             $this->preferredArtistIds
         );
 
         $response->assertOk();
-    }
-
-    /**
-     * The number of preferred artists for this user is the same as the number
-     * of artists we initially created
-     * @return void
-     */
-    public function test_preferred_artists_are_correctly_stored()
-    {
 
         $response = $this->actingAs($this->user)->getJson(
             route('user.preferred-artists')
         );
 
         $response->assertOk();
-        $response->assertJsonCount(count($this->preferredArtistIds));
+        $response->assertJson($this->preferredArtistIds);
     }
 
     /**
@@ -65,6 +59,8 @@ class PreferredArtistsActionsTest extends TestCase
      */
     public function test_can_remove_preferred_artists()
     {
+        $this->user->addPreferredArtists($this->preferredArtistIds);
+
         $response = $this->actingAs($this->user)->deleteJson(
             route('user.preferred-artists'),
             $this->preferredArtistIds
