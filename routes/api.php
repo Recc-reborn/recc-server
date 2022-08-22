@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\ArtistController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PlaybackController;
 use App\Http\Controllers\TrackController;
@@ -49,6 +50,19 @@ Route::name('users.')->prefix('users')->group(function () {
     Route::get('/{user:id}', [UserController::class, 'show'])->name('show');
     Route::put('/{user:id}', [UserController::class, 'update'])->name('update');
     Route::delete('/{user:id}', [UserController::class, 'destroy'])->name('destroy');
+});
+
+// Specific for the current user
+Route::name('user.')->prefix('user')->middleware('auth:sanctum')->group(function () {
+    Route::name('preferred-artists')->group(function () {
+        Route::get('/preferred-artists', [UserController::class, 'getPreferredArtists']);
+        Route::patch('/preferred-artists', [UserController::class, 'addPreferredArtists']);
+        Route::delete('/preferred-artists', [UserController::class, 'removePreferredArtists']);
+    });
+});
+
+Route::name('artists.')->prefix('artists')->group(function () {
+    Route::get('/', [ArtistController::class, 'index'])->name('index');
 });
 
 Route::name('auth.')->prefix('auth')->group(function () {

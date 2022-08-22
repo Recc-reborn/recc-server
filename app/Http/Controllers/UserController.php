@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -95,5 +96,42 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $user->delete();
+    }
+
+    /**
+     * Add preferred artists for this user
+     */
+    public function addPreferredArtists(Request $request)
+    {
+        $user = $request->user();
+        // $request->all() should return a list of artist IDs
+        try {
+            $user->addPreferredArtists($request->all());
+        } catch (QueryException) {
+            abort(422, 'One or more provided IDs are not correct');
+        }
+    }
+
+    /**
+     * Get this user's preferred artists' IDs
+     */
+    public function getPreferredArtists(Request $request)
+    {
+        $user = $request->user();
+        return response()->json($user->preferredArtists()->allRelatedIds());
+    }
+
+    /**
+     * Remove preferred artists for this user
+     */
+    public function removePreferredArtists(Request $request)
+    {
+        $user = $request->user();
+        // $request->all() should return a list of artist IDs
+        try {
+            $user->removePreferredArtists($request->all());
+        } catch (QueryException) {
+            abort(422, 'One or more provided IDs are not correct');
+        }
     }
 }
