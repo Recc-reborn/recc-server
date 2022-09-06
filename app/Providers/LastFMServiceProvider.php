@@ -5,9 +5,9 @@ namespace App\Providers;
 use App\Services\LastFMService;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Contracts\Support\DeferrableServiceProvider;
+use Illuminate\Contracts\Support\DeferrableProvider;
 
-class LastFMServiceProvider extends ServiceProvider implements DeferrableServiceProvider
+class LastFMServiceProvider extends ServiceProvider implements DeferrableProvider
 {
     /**
      * Register services.
@@ -16,8 +16,8 @@ class LastFMServiceProvider extends ServiceProvider implements DeferrableService
      */
     public function register()
     {
-        $this->app->singleton(LastFMService::class, function () {
-            return new LastFMService();
+        $this->app->singleton(LastFMService::class, function ($app) {
+            return new LastFMService($app);
         });
     }
 

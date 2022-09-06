@@ -4,28 +4,33 @@ namespace App\Services;
 use GuzzleHttp\Client;
 
 class LastFMService {
-    protected $baseURI = 'http://ws.audioscrobbler.com/2.0/';
-    protected $apiKey = config('services.last-fm.key');
+    protected $baseURI = 'http://ws.audioscrobbler.com/';
+    protected $apiKey;
     protected $client;
 
     public function __construct()
     {
+        $this->apiKey = config('services.last-fm.key');
         $this->client = new Client(['base_uri' => $this->baseURI]);
     }
 
     public function call(string $method, array $params)
     {
-        const $response = $this->client->request(
+        $response = $this->client->request(
             'GET',
-            '/',
+            '2.0/',
             [
-                'api_key' => $this->apikey,
-                'method' => $method,
-                'format' => 'json',
-                ...$params,
+                'query' => [
+                    'api_key' => $this->apiKey,
+                    'method' => $method,
+                    'format' => 'json',
+                    ...$params
+                ],
             ]
         );
 
-        return json_decode($response);
+        $body = $response->getBody()->getContents();
+
+        return json_decode($body);
     }
 }
