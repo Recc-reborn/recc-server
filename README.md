@@ -27,6 +27,16 @@ Fije las variables de entorno, reemplace las variables correspondientes para su 
     php artisan key:generate
     cp .env .env.testing
 
+**Opcional, recomendado en entorno de desarrollo**
+Corra los seeders para llenar la base de datos con informacion de prueba:
+
+    php artisan db:migrate
+
+**Opcional**
+Copie los artistas de la API de Last.fm usando llamadas consecutivas a su API.
+
+    php artisan lfm:clone-artists
+
 ### Extensiones recomendadas
 
 Antes de realizar cambios al código de este repositorio, instale `editorconfig` o su equivalente para su editor para asegurar la uniformidad del formato.
