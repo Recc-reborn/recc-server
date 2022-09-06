@@ -26,11 +26,12 @@ class CloneLastFMArtists extends Command
 
 
     /**
-     * How many pages to clone
+     * How many pages to clone?
+     * Limited by LastFM to 10,000 (500 * 20)
      *
      * @var int
      */
-    protected $pageLimit = 500;
+    protected $pageLimit = 20;
 
     /**
      * How many artists per page?
@@ -56,11 +57,13 @@ class CloneLastFMArtists extends Command
     public function handle(LastFMService $lastFM)
     {
         $this->lastFM = $lastFM;
-        $this->warn("[!IMPORTANT!] This command should be run ONCE at most as it is pretty heavy on LastFM's servers and we don't want to get banned!");
+        $this->warn("[!IMPORTANT!] This command should NOT be run too often as it is pretty heavy on LastFM's servers and we don't want to get banned!");
 
         $totalRetries = 0;
         // whatever happens first: artist limit reached or an error response
         for ($page = 1; $page <= $this->pageLimit; $page++) {
+            $zeroFilledPageNumber = str_pad((string) $page, 2, "0", STR_PAD_LEFT);
+            $this->info("Retrieving page $zeroFilledPageNumber / $this->pageLimit");
             try {
                 $result = $this->getPage($page);
                 $pageArtists = $result->artists->artist;
@@ -72,21 +75,21 @@ class CloneLastFMArtists extends Command
                 if (!$pageArtists || $artistCount < $this->perPage) {
                     // not enough artists to complete page, we'll take it as if
                     // we retrieved all retrievable artists
-                    Log::info("Not enough artists ($artistCount) to fill a page ($perPage). Leaving seeder.");
-                    return 1;
+                    $this->warn("Not enough artists ($paddedCount) to fill a page ($this->perPage). Leaving seeder.");
+                    return 0;
                 }
             } catch (Exception $e) {
                 // error response
                 if ($totalRetries < $this->retryLimit) {
-                    Log::error($e);
-                    Log::notice("Error retrieving top artists. Trying again ($totalRetries / $this->retryLimit).");
+                    $this->warn($e->getMessage());
+                    $this->warn("Error retrieving top artists. Trying again ($totalRetries / $this->retryLimit).");
                     // try getting this page again
                     $totalRetries++;
                     $page--;
                     continue;
                 }
 
-                Log::warn("Too many errors ($totalRetries / $this->retryLimit). Leaving seeder.");
+                $this->error("Too many errors ($totalRetries / $this->retryLimit). Leaving seeder.");
                 // unless we checked this page too many times already?
                 return 1;
             }
@@ -118,9 +121,12 @@ class CloneLastFMArtists extends Command
     {
         // LastFM responses are weird
         foreach ($artists as $artist) {
-            // TODO: Add more parameters to Artist Model
             Artist::create([
                 'name' => $artist->name,
+                'mbid' => $artist->mbid,
+                'listeners' => $artist->listeners,
+                // last image is usually the largest
+                'image_url' => $artist->image[array_key_last($artist->image)]->{'#text'},
             ]);
         }
     }
