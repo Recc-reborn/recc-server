@@ -15,9 +15,9 @@ return new class extends Migration
     {
         Schema::table('artists', function (Blueprint $table) {
             // MusicBrainz ID
-            $table->string('mbid');
+            $table->string('mbid')->nullable();
             $table->unsignedBigInteger('listeners')->default(0);
-            $table->string('image_url');
+            $table->string('image_url')->nullable();
         });
     }
 
