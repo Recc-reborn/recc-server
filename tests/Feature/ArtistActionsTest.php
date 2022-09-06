@@ -15,8 +15,11 @@ class ArtistActions extends TestCase
             'data' => [
                 // artists array
                 '*' => [
-                    'name'
-                ]
+                    'name',
+                    'mbid',
+                    'listeners',
+                    'image_url',
+                ],
             ],
         ]);
     }
