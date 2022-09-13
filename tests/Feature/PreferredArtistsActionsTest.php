@@ -5,11 +5,11 @@ namespace Tests\Feature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
 use App\Models\Artist;
 use App\Models\User;
-use Database\Seeders\ArtistsTableSeeder;
 
 class PreferredArtistsActionsTest extends TestCase
 {
@@ -23,7 +23,7 @@ class PreferredArtistsActionsTest extends TestCase
         parent::setUp();
 
         $this->user = User::factory()->create();
-        $this->seed(ArtistsTableSeeder::class);
+        Artist::factory()->count(100)->create();
 
         $this->preferredArtistIds =
             Artist::all()

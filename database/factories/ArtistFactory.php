@@ -22,6 +22,11 @@ class ArtistFactory extends Factory
      */
     public function definition()
     {
-        return [ 'name' => $this->faker->streetName ];
+        return [
+            'name' => $this->faker->streetName,
+            'mbid' => $this->faker->uuid,
+            'image_url' => $this->faker->imageUrl(256, 256, null, true, null, false),
+            'listeners' => $this->faker->numberBetween(1000, 10000),
+        ];
     }
 }
