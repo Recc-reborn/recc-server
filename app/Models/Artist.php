@@ -13,5 +13,11 @@ class Artist extends Model
     public $timestamps = false;
 
     // filled by \App\Console\Commands\CloneLastFMArtists.php
-    public $fillable = ['mbid', 'name', 'image_url', 'listeners'];
+    public $fillable = [
+        'image_url',
+        'last_fm_url',
+        'listeners',
+        'mbid',
+        'name',
+    ];
 }
