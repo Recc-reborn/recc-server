@@ -104,11 +104,17 @@ class UserController extends Controller
     public function addPreferredArtists(Request $request)
     {
         $user = $request->user();
-        // $request->all() should return a list of artist IDs
+
+        // $request->all() should return a list of last.fm artist URLs
+        $newPreferredArtists = Artist::whereIn(
+            'last_fm_url',
+            $request->all()
+        )->get('id')->pluck('id')->toArray();
+
         try {
-            $user->addPreferredArtists($request->all());
+            $user->addPreferredArtists($newPreferredArtists);
         } catch (QueryException) {
-            abort(422, 'One or more provided IDs are not correct');
+            abort(422, 'One or more provided parameters are not correct');
         }
     }
 
@@ -127,11 +133,17 @@ class UserController extends Controller
     public function removePreferredArtists(Request $request)
     {
         $user = $request->user();
-        // $request->all() should return a list of artist IDs
+
+        // $request->all() should return a list of last.fm artist URLs
+        $artistIdsToRemove = Artist::whereIn(
+            'last_fm_url',
+            $request->all()
+        )->get('id')->pluck('id')->toArray();
+
         try {
-            $user->removePreferredArtists($request->all());
+            $user->removePreferredArtists($artistIdsToRemove);
         } catch (QueryException) {
-            abort(422, 'One or more provided IDs are not correct');
+            abort(422, 'One or more provided parameters are not correct');
         }
     }
 }
