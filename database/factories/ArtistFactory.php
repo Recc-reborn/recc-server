@@ -26,6 +26,7 @@ class ArtistFactory extends Factory
             'name' => $this->faker->streetName,
             'mbid' => $this->faker->uuid,
             'image_url' => $this->faker->imageUrl(256, 256, null, true, null, false),
+            'last_fm_url' => $this->faker->url,
             'listeners' => $this->faker->numberBetween(1000, 10000),
         ];
     }
