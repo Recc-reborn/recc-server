@@ -127,6 +127,7 @@ class CloneLastFMArtists extends Command
                 'listeners' => $artist->listeners,
                 // last image is usually the largest
                 'image_url' => $artist->image[array_key_last($artist->image)]->{'#text'},
+                'last_fm_url' => $artist->url,
             ]);
         }
     }
