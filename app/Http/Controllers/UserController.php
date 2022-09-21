@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+
+use App\Models\User;
+use App\Models\Artist;
 
 class UserController extends Controller
 {
@@ -124,7 +126,10 @@ class UserController extends Controller
     public function getPreferredArtists(Request $request)
     {
         $user = $request->user();
-        return response()->json($user->preferredArtists()->allRelatedIds());
+        return response()->json(
+            $user->preferredArtists()
+                 ->get(['last_fm_url'])->pluck(['last_fm_url'])
+        );
     }
 
     /**
