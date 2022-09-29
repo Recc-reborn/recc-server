@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('artists', function (Blueprint $table) {
-            $table->string('last_fm_url')->unique();
+            $table->string('last_fm_url')->nullable()->unique();
         });
     }
 
