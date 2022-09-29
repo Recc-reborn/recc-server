@@ -41,7 +41,7 @@ class CloneLastFMArtists extends Command
     protected $perPage = 500;
 
     /**
-     * How many artists per page?
+     * How many times to retry a request, total?
      *
      * @var int
      */
@@ -75,7 +75,7 @@ class CloneLastFMArtists extends Command
                 if (!$pageArtists || $artistCount < $this->perPage) {
                     // not enough artists to complete page, we'll take it as if
                     // we retrieved all retrievable artists
-                    $this->warn("Not enough artists ($paddedCount) to fill a page ($this->perPage). Leaving seeder.");
+                    $this->warn("Not enough artists ($artistCount) to fill a page ($this->perPage). Leaving seeder.");
                     return 0;
                 }
             } catch (Exception $e) {
