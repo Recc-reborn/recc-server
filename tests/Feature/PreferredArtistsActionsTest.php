@@ -5,11 +5,11 @@ namespace Tests\Feature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
 use App\Models\Artist;
 use App\Models\User;
-use Database\Seeders\ArtistsTableSeeder;
 
 class PreferredArtistsActionsTest extends TestCase
 {
@@ -23,12 +23,12 @@ class PreferredArtistsActionsTest extends TestCase
         parent::setUp();
 
         $this->user = User::factory()->create();
-        $this->seed(ArtistsTableSeeder::class);
+        Artist::factory()->count(100)->create();
 
         $this->preferredArtistIds =
             Artist::all()
              ->random(5)
-             ->pluck('id')
+             ->pluck('last_fm_url')
              ->toArray();
     }
 
@@ -50,7 +50,15 @@ class PreferredArtistsActionsTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertJson($this->preferredArtistIds);
+
+        // validate preferred artist count
+        $response->assertJsonCount(count($this->preferredArtistIds));
+
+        // validate preferred artist ids match those in the request
+        $responseBody = $response->json();
+        foreach ($this->preferredArtistIds as $preferredArtistId) {
+            $this->assertContains($preferredArtistId, $responseBody);
+        }
     }
 
     /**
@@ -59,28 +67,18 @@ class PreferredArtistsActionsTest extends TestCase
      */
     public function test_can_remove_preferred_artists()
     {
-        $this->user->addPreferredArtists($this->preferredArtistIds);
-
-        $response = $this->actingAs($this->user)->deleteJson(
+        // first, set preferred artists
+        $this->actingAs($this->user)->patchJson(
             route('user.preferred-artists'),
             $this->preferredArtistIds
         );
 
-        $response->assertOk();
-    }
-
-    /**
-     * Querying the user's preferred artist returns an empty array after
-     * removing them all.
-     * @return void
-     */
-    public function test_preferred_artists_are_correctly_removed()
-    {
-        $response = $this->actingAs($this->user)->getJson(
-            route('user.preferred-artists')
+        // so that we can then remove the first one
+        $response = $this->actingAs($this->user)->deleteJson(
+            route('user.preferred-artists'),
+            [$this->preferredArtistIds[0]]
         );
 
         $response->assertOk();
-        $response->assertJsonCount(0);
     }
 }
