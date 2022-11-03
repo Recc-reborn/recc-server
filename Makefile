@@ -1,7 +1,7 @@
 .PHONY: start-dev start-prod
 
-start-dev: app.py
+start-dev:
 	pipenv run flask run
 
-start-prod: app.prod.py
-	pipenv run flask run
+start-prod:
+	pipenv run python app.prod.py
