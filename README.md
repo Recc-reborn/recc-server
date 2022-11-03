@@ -13,9 +13,9 @@ El motor de recomendaciones de Recc que habla con recc-server por medio de HTTP.
     ```
 4. Para iniciar el servidor, corre
     ```
-    pipenv run python main.py
+    make start
     ```
-5. Si todo sale bien, cuando visitas `127.0.0.1:9000`, debes de ver
+5. Si todo sale bien, cuando visitas `127.0.0.1:5000`, debes de ver
     ```
-    Hola
+    Hello :)
     ```
