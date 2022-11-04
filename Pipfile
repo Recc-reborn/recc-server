@@ -8,6 +8,7 @@ flask = "*"
 waitress = "*"
 sqlalchemy = "*"
 python-dotenv = "*"
+pymysql = "*"
 
 [dev-packages]
 
