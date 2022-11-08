@@ -121,6 +121,10 @@ class CloneLastFMArtists extends Command
     {
         // LastFM responses are weird
         foreach ($artists as $artist) {
+            if (Artist::where('last_fm_url', $artist->url)->exists()) {
+                continue;
+            }
+
             Artist::create([
                 'name' => $artist->name,
                 'mbid' => $artist->mbid,
