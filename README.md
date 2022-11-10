@@ -1,3 +1,16 @@
+```
+@@@@@@@   @@@@@@@@   @@@@@@@   @@@@@@@
+@@@@@@@@  @@@@@@@@  @@@@@@@@  @@@@@@@@
+@@!  @@@  @@!       !@@       !@@
+!@!  @!@  !@!       !@!       !@!
+@!@!!@!   @!!!:!    !@!       !@!
+!!@!@!    !!!!!:    !!!       !!!
+!!: :!!   !!:       :!!       :!!
+:!:  !:!  :!:       :!:       :!:
+::   :::   :: ::::   ::: :::   ::: :::
+ :   : :  : :: ::    :: :: :   :: :: :
+```
+
 # Recc Server
 
 Este es el repositorio de la API de Recc.
@@ -6,6 +19,12 @@ Este es el repositorio de la API de Recc.
 https://recc-moduleirors.postman.co/workspace/e51eb72d-9f8a-4cb2-99d2-f4fde72cd292
 
 ## Instalación
+
+### Prerequisitos
+- Docker
+- Git
+- PHP
+- Composer
 
 Clone primero el repositorio:
 
@@ -27,27 +46,51 @@ Fije las variables de entorno, reemplace las variables correspondientes para su 
     php artisan key:generate
     cp .env .env.testing
 
-**Opcional, recomendado en entorno de desarrollo**
-Corra los seeders para llenar la base de datos con informacion de prueba:
+> Importante: No olvide fijar las variables de entorno a los valores deseados.
 
-    php artisan db:migrate
+## Inicializar
 
-**Opcional**
-Copie los artistas de la API de Last.fm usando llamadas consecutivas a su API.
+El siguiente comando inicializa la imagen de Docker, la base de datos y los artistas de Last.FM:
 
-    php artisan lfm:clone-artists
+    make init
 
-### Extensiones recomendadas
+## Comandos comunes
 
-Antes de realizar cambios al código de este repositorio, instale `editorconfig` o su equivalente para su editor para asegurar la uniformidad del formato.
-
-## Correr el servidor
+### Correr el servidor
 
 Para correr el servidor ejecute el siguiente comando una vez terminada la instalación:
 
-    php artisan serve
+    make start
 
-## Correr pruebas
+El comando inicializara una imagen de Docker del servidor. Que puede ser accedida en `http://localhost:8000`
+Si desea detener el servidor, simplemente ejecute
+    
+    make stop
 
-    php artisan test
+Si desea eliminar la imagen del servidor y todos sus contenidos, ejecute
+    
+    make wipe
+
+
+### Correr pruebas
+
+    make test
+
+
+### Copiar artistas desde Last.FM
+
+Copie los artistas de la API de Last.fm usando llamadas consecutivas a su API.
+
+    make lfm-artists
+
+
+## Extensiones recomendadas
+
+Antes de realizar cambios al código de este repositorio, instale `editorconfig` o su equivalente para su editor para asegurar la uniformidad del formato.
+
+## Troubleshooting
+
+### `The stream or file "/var/www/html/storage/logs/laravel.log" could not be opened`
+
+[Lo mas probable es que sea un problema de permisos en la maquina anfitrion](https://stackoverflow.com/questions/50552970/laravel-docker-the-stream-or-file-var-www-html-storage-logs-laravel-log-co)
 
