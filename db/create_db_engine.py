@@ -8,7 +8,7 @@ def create_db_engine():
     db_port = os.getenv("DB_PORT", "5432")
     db_database = os.getenv("DB_DATABASE", "recc")
 
-    connection_string = "mariadb+pymysql://{}:{}@{}/{}?charset=utf8mb4".format(
+    connection_string = "mariadb+pymysql://{}:{}@{}:{}/{}?charset=utf8mb4".format(
         db_user,
         db_password,
         db_host,
