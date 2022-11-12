@@ -5,3 +5,6 @@ start-dev:
 
 start-prod:
 	pipenv run python app.prod.py
+
+start:
+	docker compose up -d
