@@ -4,9 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Scout\Searchable;
 
 class Artist extends Model
 {
+    use Searchable;
     use HasFactory;
 
     // No need to know when an artist was added
@@ -20,4 +22,9 @@ class Artist extends Model
         'mbid',
         'name',
     ];
+
+    public function toSearchableArray()
+    {
+        return ["name" => $this->name];
+    }
 }
