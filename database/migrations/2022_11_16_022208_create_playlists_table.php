@@ -13,20 +13,22 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('playlists', function (Blueprint $table) {
+        Schema::create("playlists", function (Blueprint $table) {
             $table->id();
             $table->timestamps();
             $table->string("title")->nullable();
             $table->string("origin");
-            $table->foreignId('user_id')->constrained()->nullOnDelete();
+            $table->foreignId("user_id")->nullable()->constrained('users')->nullOnDelete();
         });
 
-        // playlist<->song many-to-many relationship
-        Schema::create('playlist_song', function (Blueprint $table) {
-            $table->foreignId('playlist_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('song_id')->constrained()->cascadeOnDelete();
+        // playlist<->track many-to-many relationship
+        Schema::create("playlist_track", function (Blueprint $table) {
+            // describes the order of the tracks in the playlist
+            $table->float("ordinal")->default(0);
+            $table->foreignId("playlist_id")->constrained('playlists')->cascadeOnDelete();
+            $table->foreignId("track_id")->constrained('tracks')->cascadeOnDelete();
         });
-    })
+    }
 
     /**
      * Reverse the migrations.
@@ -35,7 +37,7 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('playlists');
-        Schema::dropIfExists('playlist_song');
+        Schema::dropIfExists("playlists");
+        Schema::dropIfExists("playlist_track");
     }
 };
