@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             TracksTableSeeder::class,
             PlaybackSeeder::class,
+            PlaylistSeeder::class,
         ]);
     }
 }
