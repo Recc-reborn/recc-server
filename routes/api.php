@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ArtistController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PlaybackController;
+use App\Http\Controllers\RecommendationController;
 use App\Http\Controllers\TrackController;
 use App\Http\Controllers\UserController;
 
@@ -68,4 +69,8 @@ Route::name('artists.')->prefix('artists')->group(function () {
 Route::name('auth.')->prefix('auth')->group(function () {
     Route::post('token', [AuthController::class, 'requestToken'])->name('token');
     Route::delete('token', [AuthController::class, 'unauthenticate'])->name('unauthenticate')->middleware('auth:sanctum');
+});
+
+Route::name('reccs.')->prefix('reccs')->group(function () {
+    Route::get('/', [RecommendationController::class, 'index'])->name('index')->middleware('auth:sanctum');
 });
