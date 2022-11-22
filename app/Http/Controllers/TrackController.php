@@ -27,20 +27,24 @@ class TrackController extends Controller
     public function store(Request $request)
     {
         return Track::create([
-            'title' => $request->title,
-            'artist' => $request->artist,
-            'duration' => $request->duration,
-            'genre' => $request->genre
+            'album_art_url' => $request->input("album_art_url"),
+            'artist' => $request->input("artist"),
+            'duration' => $request->input("duration"),
+            'genre' => $request->input("genre"),
+            'title' => $request->input("title"),
+            'url' => $request->input("url")
         ]);
     }
 
     public function update($id, Request $request)
     {
         $track = Track::findOrFail($id);
-        $track->title = $request->title;
-        $track->artist = $request->artist;
-        $track->duration = $request->duration;
-        $track->genre = $request->genre;
+        $track->album_art_url = $request->input("album_art_url");
+        $track->artist = $request->input("artist");
+        $track->duration = $request->input("duration");
+        $track->genre = $request->input("genre");
+        $track->title = $request->input("title");
+        $track->url = $request->input("url");
 
         $track->save();
     }
