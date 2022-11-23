@@ -38,6 +38,7 @@ class TrackFactory extends Factory
             'artist' => $this->faker->firstName() . ' ' . $this->faker->lastName(),
             'genre' => $fakeGenres[array_rand($fakeGenres)],
             'duration' => $this->faker->numberBetween(60, 600),
+            'album' => $this->faker->realText($maxNbChars=30),
             'album_art_url' => "https://place.dog/255/255",
             'url' => $this->faker->url(),
         ];
