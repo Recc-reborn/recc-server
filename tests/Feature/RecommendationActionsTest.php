@@ -10,6 +10,7 @@ use Tests\TestCase;
 
 use App\Models\Track;
 use App\Models\User;
+use App\Models\Playlist;
 
 class RecommendationActionsTest extends TestCase
 {
