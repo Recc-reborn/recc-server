@@ -26,7 +26,7 @@ class RecommendationActionsTest extends TestCase
         $this->user = User::factory()->create();
         Track::factory()->count(100)->create();
         Playlist::factory()
-            ->count($availablePlaylistCount)
+            ->count($this->availablePlaylistCount)
             ->create()
             ->each(function ($playlist) {
                 $trackIds = Track::limit(20)
@@ -51,6 +51,13 @@ class RecommendationActionsTest extends TestCase
         $response->assertOk();
 
         // validate playlist count
-        $response->assertJsonCount($availablePlaylistCount);
+        $response->assertJsonCount($this->availablePlaylistCount);
+    }
+
+    public function test_gets_401_when_unauthorized()
+    {
+        $response = $this->getJson(route('reccs.index'));
+
+        $response->assertUnauthorized();
     }
 }
