@@ -73,4 +73,4 @@ Route::name('auth.')->prefix('auth')->group(function () {
 
 Route::name('reccs.')->prefix('reccs')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [RecommendationController::class, 'index'])->name('index');
-})
+});
