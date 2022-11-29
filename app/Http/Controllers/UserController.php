@@ -107,14 +107,9 @@ class UserController extends Controller
     {
         $user = $request->user();
 
-        // $request->all() should return a list of last.fm artist URLs
-        $newPreferredArtists = Artist::whereIn(
-            'id',
-            $request->all()
-        )->get('id')->pluck('id')->toArray();
-
         try {
-            $user->addPreferredArtists($newPreferredArtists);
+            // $request->all() should return a list of artist IDs
+            $user->addPreferredArtists($request->all());
         } catch (QueryException) {
             abort(422, 'One or more provided parameters are not correct');
         }
