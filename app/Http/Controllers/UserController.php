@@ -109,7 +109,7 @@ class UserController extends Controller
 
         // $request->all() should return a list of last.fm artist URLs
         $newPreferredArtists = Artist::whereIn(
-            'last_fm_url',
+            'id',
             $request->all()
         )->get('id')->pluck('id')->toArray();
 
@@ -128,7 +128,7 @@ class UserController extends Controller
         $user = $request->user();
         return response()->json(
             $user->preferredArtists()
-                 ->get(['last_fm_url'])->pluck(['last_fm_url'])
+                 ->get(['id'])->pluck(['id'])
         );
     }
 
@@ -141,7 +141,7 @@ class UserController extends Controller
 
         // $request->all() should return a list of last.fm artist URLs
         $artistIdsToRemove = Artist::whereIn(
-            'last_fm_url',
+            'id',
             $request->all()
         )->get('id')->pluck('id')->toArray();
 
