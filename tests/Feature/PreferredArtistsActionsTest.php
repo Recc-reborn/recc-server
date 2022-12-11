@@ -28,7 +28,7 @@ class PreferredArtistsActionsTest extends TestCase
         $this->preferredArtistIds =
             Artist::all()
              ->random(5)
-             ->pluck('last_fm_url')
+             ->pluck('id')
              ->toArray();
     }
 
