@@ -7,7 +7,7 @@ up:
 	$(sail) up -d
 
 stop:
-	$(sail) down
+	$(sail) stop
 
 restart:
 	$(sail) restart
@@ -36,3 +36,18 @@ ascii-recc-reborn:
 	cat "recc-reborn-ascii.txt"
 
 start: up ascii-recc
+
+tinker:
+	$(sail) artisan tinker
+
+pause:
+	$(sail) pause
+
+stop:
+	$(sail) stop
+
+kill:
+	$(sail) kill
+
+clean:
+	$(sail) down
