@@ -15,7 +15,7 @@ class PlaybackSeeder extends Seeder
     public function run()
     {
         Playback::factory()
-            ->count(50)
+            ->count(420)
             ->create();
     }
 }
