@@ -40,7 +40,7 @@ class PlaylistActionsTest extends TestCase
 
         $response->assertCreated();
 
-        $latestCreatedPlaylist = Playlist::last();
+        $latestCreatedPlaylist = Playlist::latest()->first()->toArray();
 
         $response->assertSimilarJson($latestCreatedPlaylist);
     }
