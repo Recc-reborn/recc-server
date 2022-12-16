@@ -28,6 +28,9 @@ lfm-artists:
 
 init: start migrate lfm-artists
 
+db:
+	$(sail) artisan db
+
 # Really important stuff
 ascii-recc:
 	cat "recc-ascii.txt"

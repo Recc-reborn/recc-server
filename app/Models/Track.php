@@ -14,7 +14,7 @@ class Track extends Model
         'album_art_url',
         'artist',
         'duration',
-        'genre',
+        'tags',
         'title',
         'url'
     ];
