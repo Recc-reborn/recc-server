@@ -9,14 +9,18 @@ class Track extends Model
 {
     use HasFactory;
 
+    public $timestamps = false;
+
     protected $fillable = [
-        'album',
-        'album_art_url',
         'artist',
         'duration',
-        'tags',
         'title',
         'url'
+    ];
+
+    protected $nullable = [
+        'album',
+        'album_art_url',
     ];
 
     protected $casts = [
@@ -26,5 +30,10 @@ class Track extends Model
     public function playbacks()
     {
         return $this->hasMany(Playback::class);
+    }
+
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'track_tag');
     }
 }

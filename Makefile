@@ -20,6 +20,10 @@ wipe:
 migrate:
 	$(sail) artisan migrate
 
+fresh:
+	$(sail) artisan db:wipe
+	$(sail) artisan migrate:fresh
+
 test:
 	$(sail) artisan test
 
