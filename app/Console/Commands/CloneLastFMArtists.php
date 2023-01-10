@@ -156,6 +156,7 @@ class CloneLastFMArtists extends Command
                 return 1;
             }
         }
+        return 0;
     } 
 
     /**
@@ -261,8 +262,6 @@ class CloneLastFMArtists extends Command
                 $album = $trackInfo->album->title;
                 $album_art_url = (string) $trackInfo->album->image[array_key_last($trackInfo->album->image)]->{'#text'};
             }
-
-            var_dump($trackInfo);
 
             $track = new Track;
             $track->title = $trackInfo->name;
