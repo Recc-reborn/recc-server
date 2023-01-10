@@ -14,6 +14,11 @@ class LastFMService {
         $this->client = new Client(['base_uri' => $this->baseURI]);
     }
 
+    /**
+     * Makes a call to Last.fm API and returns a data object
+     *
+     * @@return mixed
+     */
     public function call(string $method, array $params)
     {
         $response = $this->client->request(
