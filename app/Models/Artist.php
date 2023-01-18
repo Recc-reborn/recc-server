@@ -27,4 +27,9 @@ class Artist extends Model
     {
         return ["name" => $this->name];
     }
+
+    public function tags() {
+        return $this->hasMany(Tag::class);
+    }
+
 }

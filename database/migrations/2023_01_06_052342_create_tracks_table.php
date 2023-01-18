@@ -15,11 +15,15 @@ class CreateTracksTable extends Migration
     {
         Schema::create('tracks', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
             $table->string('title');
             $table->string('artist');
             $table->unsignedInteger('duration'); // seconds
-            $table->string('genre');
+        });
+
+        // tracks <-> tags many to many relationship
+        Schema::create('track_tag', function (Blueprint $table) {
+            $table->foreignId('track_id')->constrained()->onDelete('cascade');
+            $table->foreignId('tag_id')->constrained()->onDelete('cascade');
         });
     }
 

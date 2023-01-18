@@ -3,10 +3,12 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
 
 use App\Models\Artist;
+use App\Models\Track;
+use App\Models\Tag;
 use App\Services\LastFMService;
+use Http\Client\Exception;
 
 class CloneLastFMArtists extends Command
 {
@@ -31,14 +33,26 @@ class CloneLastFMArtists extends Command
      *
      * @var int
      */
-    protected $pageLimit = 20;
+    protected $artistPageLimit = 20;
 
     /**
      * How many artists per page?
      *
      * @var int
      */
-    protected $perPage = 500;
+    protected $artistsPerPage = 500;
+
+    /**
+     * How many tracks per artist?
+     * @var int
+     */
+    protected $tracksPerArtist = 30;
+
+    /**
+     * How many tags per track
+     * @var int
+     */
+    protected $tagsByTrack = 3;
 
     /**
      * How many times to retry a request, total?
@@ -54,28 +68,76 @@ class CloneLastFMArtists extends Command
      *
      * @return int
      */
-    public function handle(LastFMService $lastFM)
+    public function handle(LastFMService $lastFM): int
     {
         $this->lastFM = $lastFM;
-        $this->warn("[!IMPORTANT!] This command should NOT be run too often as it is pretty heavy on LastFM's servers and we don't want to get banned!");
+        $initWarn = "
+            [!IMPORTANT!] This command should NOT be run too often as it is a 
+            pretty heavy on LastFM's servers and we don't want to get banned!
+        ";
+        $initWarn = str_replace(array("\r", "\n", "    ", "\t"), "", $initWarn);
+        $this->warn($initWarn);
 
+        $this->fetchArtists();
+
+        return 0;
+    }
+
+    /*
+     * Fetches tracks from LastFM
+     */
+    protected function fetchTracks(mixed $pageArtists): int
+    {
+        foreach ($pageArtists as $artist) {
+            try {
+                $tracks = $this->getTrackPage($artist->name);
+                $tracks = $tracks->toptracks->track;
+                $this->addTracksToDatabase($tracks, $artist->name);
+                return 0;
+            } catch (Exception $e) {
+                return 1;
+            }
+        }
+    }
+
+    /**
+     * Fetches top tracks' tags from LastFM
+     */
+    protected function fetchTags(string $artist, string $track): array
+    {
+        $tags = $this->getTrackInfo($artist, $track);
+        $tags = $tags->track->toptags->tag;
+        $tagIds = array();
+        foreach ($tags as $tag) {
+            array_push($tagIds, $this->addtagsToDatabase($tag));
+        }
+        return $tagIds;
+    }
+
+
+    /**
+     * Fetches artists from LastFM
+     */
+    protected function fetchArtists(): int
+    {
         $totalRetries = 0;
         // whatever happens first: artist limit reached or an error response
-        for ($page = 1; $page <= $this->pageLimit; $page++) {
+        for ($page = 1; $page <= $this->artistPageLimit; $page++) {
             $zeroFilledPageNumber = str_pad((string) $page, 2, "0", STR_PAD_LEFT);
-            $this->info("Retrieving page $zeroFilledPageNumber / $this->pageLimit");
+            $this->info("Retrieving page $zeroFilledPageNumber / $this->artistPageLimit");
             try {
-                $result = $this->getPage($page);
+                $result = $this->getArtistPage($page);
                 $pageArtists = $result->artists->artist;
+                $this->fetchTracks($pageArtists);
 
                 $this->addArtistsToDatabase($pageArtists);
 
                 $artistCount = count($pageArtists);
 
-                if (!$pageArtists || $artistCount < $this->perPage) {
+                if (!$pageArtists || $artistCount < $this->artistsPerPage) {
                     // not enough artists to complete page, we'll take it as if
                     // we retrieved all retrievable artists
-                    $this->warn("Not enough artists ($artistCount) to fill a page ($this->perPage). Leaving seeder.");
+                    $this->warn("Not enough artists ($artistCount) to fill a page ($this->artistsPerPage). Leaving seeder.");
                     return 0;
                 }
             } catch (Exception $e) {
@@ -94,7 +156,6 @@ class CloneLastFMArtists extends Command
                 return 1;
             }
         }
-
         return 0;
     }
 
@@ -103,11 +164,38 @@ class CloneLastFMArtists extends Command
      *
      * @return mixed[]
      */
-    protected function getPage(int $page)
+    protected function getArtistPage(int $page): mixed
     {
         return $this->lastFM->call(
             'chart.getTopArtists',
-            ['limit' => $this->perPage, 'page' => $page]
+            ['limit' => $this->artistsPerPage, 'page' => $page]
+        );
+    }
+
+    /**
+     * Get a page's worth of tracks from a specefic artist
+     * @param string $artist
+     */
+    protected function getTrackPage(string $artist): mixed
+    {
+        return $this->lastFM->call(
+            'artist.gettoptracks',
+            ['limit' => $this->tracksPerArtist,
+            'artist' => $artist]
+        );
+    }
+
+    /**
+     * Fetches info of a specefic song
+     *
+     * @return void
+     */
+    protected function getTrackInfo(string $artist, string $track): mixed
+    {
+        return $this->lastFM->call(
+            'track.getInfo',
+            ['track' => $track,
+            'artist' => $artist]
         );
     }
 
@@ -117,7 +205,7 @@ class CloneLastFMArtists extends Command
      *
      * @param mixed[] $artists
      */
-    public function addArtistsToDatabase($artists)
+    public function addArtistsToDatabase($artists): void
     {
         // LastFM responses are weird
         foreach ($artists as $artist) {
@@ -133,6 +221,58 @@ class CloneLastFMArtists extends Command
                 'image_url' => $artist->image[array_key_last($artist->image)]->{'#text'},
                 'last_fm_url' => $artist->url,
             ]);
+        }
+    }
+
+    /**
+     * Creates a \App\Models\Tag
+     *
+     * @param mixed[] tags
+     */
+    public function addtagsToDatabase($tag): int
+    {
+        $tagExists = Tag::where('name', $tag->name)->exists();
+        if (empty($tagExists)) {
+            $tag = Tag::create([
+                'name' => $tag->name,
+                'url' => $tag->url
+            ]);
+            return $tag->id;
+        }
+        $id = Tag::where('name', $tag->name)->value('id');
+        return $id;
+    }
+
+    /**
+     * Creates a \App\Models\Track
+     *
+     * @param mixed[] tracks
+     */
+    public function addTracksToDatabase($trackPage, $artist): void
+    {
+        foreach ($trackPage as $track) {
+            $trackInfo = $this->getTrackInfo($artist, $track->name);
+            $trackInfo = $trackInfo->track;
+
+            $tags = $this->fetchTags($artist, $trackInfo->name);
+            if (empty($trackInfo->album)) {
+                $album = null;
+                $album_art_url = null;
+            } else {
+                $album = $trackInfo->album->title;
+                $album_art_url = (string) $trackInfo->album->image[array_key_last($trackInfo->album->image)]->{'#text'};
+            }
+
+            $track = new Track;
+            $track->title = $trackInfo->name;
+            $track->artist = $artist;
+            $track->duration = $trackInfo->duration;
+            $track->album = $album;
+            $track->album_art_url = $album_art_url;
+            $track->url = (string) $trackInfo->url;
+            $track->save();
+
+            $track->tags()->sync($tags);
         }
     }
 }

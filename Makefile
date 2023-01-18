@@ -20,6 +20,10 @@ wipe:
 migrate:
 	$(sail) artisan migrate
 
+fresh:
+	$(sail) artisan db:wipe
+	$(sail) artisan migrate:fresh
+
 test:
 	$(sail) artisan test
 
@@ -27,6 +31,9 @@ lfm-artists:
 	$(sail) artisan lfm:clone-artists
 
 init: start migrate lfm-artists
+
+db:
+	$(sail) artisan db
 
 # Really important stuff
 ascii-recc:

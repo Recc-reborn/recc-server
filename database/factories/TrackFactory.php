@@ -21,7 +21,7 @@ class TrackFactory extends Factory
      */
     public function definition()
     {
-        $fakeGenres = [
+        $fakeTags = [
             'Art Electro Prog',
             'Electro Norteño',
             'Gangsta EDM',
@@ -36,7 +36,6 @@ class TrackFactory extends Factory
         return [
             'title' => $this->faker->realText($maxNbChars=50),
             'artist' => $this->faker->firstName() . ' ' . $this->faker->lastName(),
-            'genre' => $fakeGenres[array_rand($fakeGenres)],
             'duration' => $this->faker->numberBetween(60, 600),
             'album' => $this->faker->realText($maxNbChars=30),
             'album_art_url' => "https://place.dog/255/255",
