@@ -36,7 +36,6 @@ class TrackFactory extends Factory
         return [
             'title' => $this->faker->realText($maxNbChars=50),
             'artist' => $this->faker->firstName() . ' ' . $this->faker->lastName(),
-            'tags' => $fakeTags[array_rand($fakeTags)],
             'duration' => $this->faker->numberBetween(60, 600),
             'album' => $this->faker->realText($maxNbChars=30),
             'album_art_url' => "https://place.dog/255/255",

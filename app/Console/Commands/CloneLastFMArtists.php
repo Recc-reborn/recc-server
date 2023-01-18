@@ -113,7 +113,7 @@ class CloneLastFMArtists extends Command
         }
         return $tagIds;
     }
-    
+
 
     /**
      * Fetches artists from LastFM
@@ -157,7 +157,7 @@ class CloneLastFMArtists extends Command
             }
         }
         return 0;
-    } 
+    }
 
     /**
      * Get a page's worth of artists from LastFM
@@ -245,7 +245,7 @@ class CloneLastFMArtists extends Command
 
     /**
      * Creates a \App\Models\Track
-     * 
+     *
      * @param mixed[] tracks
      */
     public function addTracksToDatabase($trackPage, $artist): void
