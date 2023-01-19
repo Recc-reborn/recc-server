@@ -53,7 +53,7 @@ class CloneLastFMArtists extends Command
      * How many tracks per artist?
      * @var int
      */
-    protected $tracksPerArtist = 10;
+    protected $tracksPerArtist = 4;
 
     /**
      * How many tags per track
@@ -92,31 +92,40 @@ class CloneLastFMArtists extends Command
 
     /*
      * Fetches tracks from LastFM
+     * @param mixed $pageArtists
      */
-    protected function fetchTracks(mixed $pageArtists): int
+    protected function fetchTracks($pageArtists): void
     {
         foreach ($pageArtists as $artist) {
-            try {
-                $tracks = $this->getTrackPage($artist->name);
-                $tracks = $tracks->toptracks->track;
-                $this->addTracksToDatabase($tracks, $artist->name);
-            } catch (Exception $e) {
-                return 1;
+            $tracks = $this->getTrackPage($artist->name);
+            if (!isset($tracks->toptracks->track)) {
+                $this->error("'$artist->name'\'s tracks couldn't get fetched");
+                continue;
             }
+            $tracks = $tracks->toptracks->track;
+            $this->addTracksToDatabase($tracks, $artist->name);
         }
-        return 0;
     }
 
     /**
-     * Fetches top tracks' tags from LastFM
+     * Gets a $trackInfo variable from last.fm's track.getInfo method and returns
+     * an array with all the song's tags.
+     * @param mixed $trackInfo
      */
-    protected function fetchTags(string $artist, string $track): array
+    protected function getTagIds($trackInfo): array
     {
-        $tags = $this->getTrackInfo($artist, $track);
-        $tags = $tags->track->toptags->tag;
         $tagIds = array();
+        $tags = $trackInfo->track->toptags->tag;
+        $tagsStr = implode(',', array_column($tags, 'name'));
+        $this->info("    tags -> $tagsStr");
+
         foreach ($tags as $tag) {
-            array_push($tagIds, $this->addtagsToDatabase($tag));
+            if (trim(strtolower($tag->name)) !== trim(strtolower($trackInfo->track->artist->name))) {
+                array_push($tagIds, $this->addtagsToDatabase($tag));
+            } else {
+                $tag = trim(strtolower($tag->name));
+                $this->warn("Not adding '$tag' tag");
+            }
         }
         return $tagIds;
     }
@@ -244,10 +253,10 @@ class CloneLastFMArtists extends Command
      */
     public function addtagsToDatabase($tag): int
     {
-        $tagExists = Tag::where('name', $tag->name)->exists();
+        $tagExists = Tag::where('name', trim(strtolower($tag->name)))->exists();
         if (empty($tagExists)) {
             $tag = Tag::create([
-                'name' => $tag->name,
+                'name' => trim(strtolower($tag->name)),
                 'url' => $tag->url
             ]);
             return $tag->id;
@@ -266,9 +275,14 @@ class CloneLastFMArtists extends Command
         foreach ($trackPage as $track) {
             try {
                 $trackInfo = $this->getTrackInfo($artist, $track->name);
+                if (!isset($trackInfo->track)) {
+                    $this->error("$artist - $track->name couldn't get added to database");
+                    continue;
+                }
+                $tags = $this->getTagIds($trackInfo);
+
                 $trackInfo = $trackInfo->track;
 
-                $tags = $this->fetchTags($artist, $trackInfo->name);
                 if (empty($trackInfo->album)) {
                     $album = null;
                     $album_art_url = null;
