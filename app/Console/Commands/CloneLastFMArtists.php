@@ -117,7 +117,6 @@ class CloneLastFMArtists extends Command
         $tagIds = array();
         $tags = $trackInfo->track->toptags->tag;
         $tagsStr = implode(',', array_column($tags, 'name'));
-        $this->info("    tags -> $tagsStr");
 
         foreach ($tags as $tag) {
             if (trim(strtolower($tag->name)) !== trim(strtolower($trackInfo->track->artist->name))) {
