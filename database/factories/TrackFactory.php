@@ -30,7 +30,8 @@ class TrackFactory extends Factory
             'Post-Lofi',
             'Space Latin',
             'Shoegaze',
-            'Woke Twerk'
+            'Woke Twerk',
+            'Norteño',
         ];
 
         return [

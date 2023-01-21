@@ -43,10 +43,17 @@ class CloneLastFMArtists extends Command
     protected $artistsPerPage = 500;
 
     /**
+     * How many artists per page?
+     *
+     * @var int
+     */
+    protected $minArtistPerPage = 50;
+
+    /**
      * How many tracks per artist?
      * @var int
      */
-    protected $tracksPerArtist = 30;
+    protected $tracksPerArtist = 4;
 
     /**
      * How many tags per track
@@ -72,7 +79,7 @@ class CloneLastFMArtists extends Command
     {
         $this->lastFM = $lastFM;
         $initWarn = "
-            [!IMPORTANT!] This command should NOT be run too often as it is a 
+            [!IMPORTANT!] This command should NOT be run too often as it is a
             pretty heavy on LastFM's servers and we don't want to get banned!
         ";
         $initWarn = str_replace(array("\r", "\n", "    ", "\t"), "", $initWarn);
@@ -85,31 +92,39 @@ class CloneLastFMArtists extends Command
 
     /*
      * Fetches tracks from LastFM
+     * @param mixed $pageArtists
      */
-    protected function fetchTracks(mixed $pageArtists): int
+    protected function fetchTracks($pageArtists): void
     {
         foreach ($pageArtists as $artist) {
-            try {
-                $tracks = $this->getTrackPage($artist->name);
-                $tracks = $tracks->toptracks->track;
-                $this->addTracksToDatabase($tracks, $artist->name);
-                return 0;
-            } catch (Exception $e) {
-                return 1;
+            $tracks = $this->getTrackPage($artist->name);
+            if (!isset($tracks->toptracks->track)) {
+                $this->error("'$artist->name'\'s tracks couldn't get fetched");
+                continue;
             }
+            $tracks = $tracks->toptracks->track;
+            $this->addTracksToDatabase($tracks, $artist->name);
         }
     }
 
     /**
-     * Fetches top tracks' tags from LastFM
+     * Gets a $trackInfo variable from last.fm's track.getInfo method and returns
+     * an array with all the song's tags.
+     * @param mixed $trackInfo
      */
-    protected function fetchTags(string $artist, string $track): array
+    protected function getTagIds($trackInfo): array
     {
-        $tags = $this->getTrackInfo($artist, $track);
-        $tags = $tags->track->toptags->tag;
         $tagIds = array();
+        $tags = $trackInfo->track->toptags->tag;
+        $tagsStr = implode(',', array_column($tags, 'name'));
+
         foreach ($tags as $tag) {
-            array_push($tagIds, $this->addtagsToDatabase($tag));
+            if (trim(strtolower($tag->name)) !== trim(strtolower($trackInfo->track->artist->name))) {
+                array_push($tagIds, $this->addtagsToDatabase($tag));
+            } else {
+                $tag = trim(strtolower($tag->name));
+                $this->warn("Not adding '$tag' tag");
+            }
         }
         return $tagIds;
     }
@@ -120,11 +135,13 @@ class CloneLastFMArtists extends Command
      */
     protected function fetchArtists(): int
     {
+        $totalArtist = $this->artistsPerPage * $this->artistPageLimit;
+        $artistFetched = 0;
         $totalRetries = 0;
         // whatever happens first: artist limit reached or an error response
-        for ($page = 1; $page <= $this->artistPageLimit; $page++) {
+        for ($page = 1; $artistFetched < $totalArtist; $page++) {
             $zeroFilledPageNumber = str_pad((string) $page, 2, "0", STR_PAD_LEFT);
-            $this->info("Retrieving page $zeroFilledPageNumber / $this->artistPageLimit");
+            $this->info("Retrieving page $zeroFilledPageNumber: $artistFetched/$totalArtist artists fetched");
             try {
                 $result = $this->getArtistPage($page);
                 $pageArtists = $result->artists->artist;
@@ -133,8 +150,9 @@ class CloneLastFMArtists extends Command
                 $this->addArtistsToDatabase($pageArtists);
 
                 $artistCount = count($pageArtists);
+                $artistFetched += $artistCount;
 
-                if (!$pageArtists || $artistCount < $this->artistsPerPage) {
+                if (!$pageArtists || $artistCount < $this->minArtistPerPage) {
                     // not enough artists to complete page, we'll take it as if
                     // we retrieved all retrievable artists
                     $this->warn("Not enough artists ($artistCount) to fill a page ($this->artistsPerPage). Leaving seeder.");
@@ -168,7 +186,10 @@ class CloneLastFMArtists extends Command
     {
         return $this->lastFM->call(
             'chart.getTopArtists',
-            ['limit' => $this->artistsPerPage, 'page' => $page]
+            [
+                'limit' => $this->artistsPerPage,
+                'page' => $page
+            ]
         );
     }
 
@@ -180,8 +201,10 @@ class CloneLastFMArtists extends Command
     {
         return $this->lastFM->call(
             'artist.gettoptracks',
-            ['limit' => $this->tracksPerArtist,
-            'artist' => $artist]
+            [
+                'limit' => $this->tracksPerArtist,
+                'artist' => $artist
+            ]
         );
     }
 
@@ -194,8 +217,10 @@ class CloneLastFMArtists extends Command
     {
         return $this->lastFM->call(
             'track.getInfo',
-            ['track' => $track,
-            'artist' => $artist]
+            [
+                'track' => $track,
+                'artist' => $artist
+            ]
         );
     }
 
@@ -231,15 +256,22 @@ class CloneLastFMArtists extends Command
      */
     public function addtagsToDatabase($tag): int
     {
-        $tagExists = Tag::where('name', $tag->name)->exists();
+        $tagExists = Tag::where('name', trim(strtolower($tag->name)))->exists();
         if (empty($tagExists)) {
             $tag = Tag::create([
-                'name' => $tag->name,
+                'name' => trim(strtolower($tag->name)),
                 'url' => $tag->url
             ]);
+            if ($tag->name == "brazilian") {
+                $this->error("Look at me, i'm been saved: $tag->name - Id: $tag->id");
+            }
             return $tag->id;
         }
-        $id = Tag::where('name', $tag->name)->value('id');
+        $id = Tag::where('name', trim(strtolower($tag->name)))->value('id');
+        if (!isset($id)) {
+            $this->error("Unexpected error finding the tag: $tag->name - Id: $id");
+            return -1;
+        }
         return $id;
     }
 
@@ -251,28 +283,38 @@ class CloneLastFMArtists extends Command
     public function addTracksToDatabase($trackPage, $artist): void
     {
         foreach ($trackPage as $track) {
-            $trackInfo = $this->getTrackInfo($artist, $track->name);
-            $trackInfo = $trackInfo->track;
+            try {
+                $trackInfo = $this->getTrackInfo($artist, $track->name);
+                if (!isset($trackInfo->track)) {
+                    $this->error("$artist - $track->name couldn't get added to database");
+                    continue;
+                }
+                $tags = $this->getTagIds($trackInfo);
 
-            $tags = $this->fetchTags($artist, $trackInfo->name);
-            if (empty($trackInfo->album)) {
-                $album = null;
-                $album_art_url = null;
-            } else {
-                $album = $trackInfo->album->title;
-                $album_art_url = (string) $trackInfo->album->image[array_key_last($trackInfo->album->image)]->{'#text'};
+                $trackInfo = $trackInfo->track;
+
+                if (empty($trackInfo->album)) {
+                    $album = null;
+                    $album_art_url = null;
+                } else {
+                    $album = $trackInfo->album->title;
+                    $album_art_url = (string) $trackInfo->album->image[array_key_last($trackInfo->album->image)]->{'#text'};
+                }
+
+                $track = new Track;
+                $track->title = $trackInfo->name;
+                $track->artist = $artist;
+                $track->duration = $trackInfo->duration;
+                $track->album = $album;
+                $track->album_art_url = $album_art_url;
+                $track->url = (string) $trackInfo->url;
+                $track->save();
+
+                $track->tags()->sync($tags);
+            } catch (Exception $e) {
+                $this->error("Not enough tracks fetched: $e");
+                return;
             }
-
-            $track = new Track;
-            $track->title = $trackInfo->name;
-            $track->artist = $artist;
-            $track->duration = $trackInfo->duration;
-            $track->album = $album;
-            $track->album_art_url = $album_art_url;
-            $track->url = (string) $trackInfo->url;
-            $track->save();
-
-            $track->tags()->sync($tags);
         }
     }
 }
