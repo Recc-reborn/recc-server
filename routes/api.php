@@ -28,7 +28,7 @@ Route::name('tracks.')->prefix('tracks')->group(function () {
     Route::post('/', [TrackController::class, 'store'])->name('store');
     Route::put('/{track:id}', [TrackController::class, 'update'])->name('update');
     Route::delete('/{track:id}', [TrackController::class, 'destroy'])
-           ->name('destroy');
+        ->name('destroy');
 });
 
 Route::name('popular-tracks.')->prefix('popular/tracks')->group(function () {
@@ -78,4 +78,9 @@ Route::name('reccs.')->prefix('reccs')->middleware('auth:sanctum')->group(functi
 
 Route::name('playlists.')->prefix('playlists')->middleware('auth:sanctum')->group(function () {
     Route::post('/', [PlaylistController::class, 'create'])->name('create');
+});
+
+Route::name("tags")->prefix('tags')->group(function () {
+    Route::get('/', [TagController::class, 'index'])->name('indexTags');
+    Route::get('/{tag:id}', [TagController::class, 'show'])->name('getTag');
 });
