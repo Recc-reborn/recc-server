@@ -201,8 +201,10 @@ class CloneLastFMArtists extends Command
     {
         return $this->lastFM->call(
             'artist.gettoptracks',
-            ['limit' => $this->tracksPerArtist,
-            'artist' => $artist]
+            [
+                'limit' => $this->tracksPerArtist,
+                'artist' => $artist
+            ]
         );
     }
 
@@ -215,8 +217,10 @@ class CloneLastFMArtists extends Command
     {
         return $this->lastFM->call(
             'track.getInfo',
-            ['track' => $track,
-            'artist' => $artist]
+            [
+                'track' => $track,
+                'artist' => $artist
+            ]
         );
     }
 
@@ -258,9 +262,16 @@ class CloneLastFMArtists extends Command
                 'name' => trim(strtolower($tag->name)),
                 'url' => $tag->url
             ]);
+            if ($tag->name == "brazilian") {
+                $this->error("Look at me, i'm been saved: $tag->name - Id: $tag->id");
+            }
             return $tag->id;
         }
-        $id = Tag::where('name', $tag->name)->value('id');
+        $id = Tag::where('name', trim(strtolower($tag->name)))->value('id');
+        if (!isset($id)) {
+            $this->error("Unexpected error finding the tag: $tag->name - Id: $id");
+            return -1;
+        }
         return $id;
     }
 
@@ -300,7 +311,7 @@ class CloneLastFMArtists extends Command
                 $track->save();
 
                 $track->tags()->sync($tags);
-            } catch(Exception $e) {
+            } catch (Exception $e) {
                 $this->error("Not enough tracks fetched: $e");
                 return;
             }

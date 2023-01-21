@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::table('tracks', function (Blueprint $table) {
             $table->string('album_art_url')->nullable();
-            $table->string('url')->nullable();
+            $table->string('url', 1024)->nullable();
         });
     }
 
