@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Scout\Searchable;
 
 class Track extends Model
 {
     use HasFactory;
+    use Searchable;
 
     public $timestamps = false;
 
@@ -35,5 +37,13 @@ class Track extends Model
     public function tags()
     {
         return $this->belongsToMany(Tag::class, 'track_tag');
+    }
+
+    public function toSearchableArray()
+    {
+        return [
+            'title' => $this->title,
+            'artist' => $this->artist,
+        ];
     }
 }

@@ -18,7 +18,8 @@ class ArtistController extends Controller
         $query = $search ? Artist::search($search) : Artist::query();
 
         $perPage = $request->input("per_page", 15);
+        $page = $request->input('page', 1);
 
-        return $query->paginate($perPage);
+        return $query->paginate($perPage, page: $page);
     }
 }

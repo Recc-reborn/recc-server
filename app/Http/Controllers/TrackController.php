@@ -14,9 +14,13 @@ class TrackController extends Controller
     const NUMBER_OF_RECOMMENDATIONS = 5;
     const TOP_SIZE = 20;
 
-    public function index()
+    public function index(Request $request)
     {
-        return Track::all();
+        $search = $request->input('search');
+        $query = $search ? Track::search($search) : Track::query();
+        $perPage = $request->input('per_page', 15);
+        $page = $request->input('page', 1);
+        return $query->paginate($perPage, page: $page);
     }
 
     public function show($id)
