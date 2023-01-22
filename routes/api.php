@@ -10,6 +10,7 @@ use App\Http\Controllers\PlaylistController;
 use App\Http\Controllers\TrackController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RecommendationController;
+use App\Http\Controllers\TagController;
 
 /*
 |--------------------------------------------------------------------------
