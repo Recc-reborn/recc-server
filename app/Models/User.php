@@ -64,14 +64,22 @@ class User extends Authenticatable
         return $this->belongsToMany(Artist::class, 'preferred_artists', 'user_id', 'artist_id');
     }
 
-    public function addPreferredArtists(array $artistIds)
+
+    /*
+     * @param $artistIds array
+     */
+    public function addPreferredArtists(array $artistIds): void
     {
         $this->preferredArtists()->syncWithoutDetaching($artistIds);
         $this->set_preferred_artists_at = now();
         $this->save();
     }
 
-    public function removePreferredArtists(array $artistIds)
+
+    /*
+     * @param $artistIds array
+     */
+    public function removePreferredArtists(array $artistIds): void
     {
         $this->preferredArtists()->detach($artistIds);
     }
@@ -88,14 +96,21 @@ class User extends Authenticatable
         return $this->belongsToMany(Track::class, 'preferred_tracks', 'user_id', 'track_id');
     }
 
-    public function addPreferredTracks(array $tracksIds)
+
+    /*
+     * @param $tracksIds array
+     */
+    public function addPreferredTracks(array $tracksIds): void
     {
         $this->preferredTracks()->syncWithoutDetaching($tracksIds);
         $this->set_preferred_tracks_at = now();
         $this->save();
     }
 
-    public function removePreferredTracks(array $tracksIds)
+    /*
+     * @param $tracksIds array
+     */
+    public function removePreferredTracks(array $tracksIds): void
     {
         $this->preferredTracks()->detach($tracksIds);
     }
