@@ -61,6 +61,9 @@ Route::name('user.')->prefix('user')->middleware('auth:sanctum')->group(function
         Route::get('/preferred-artists', [UserController::class, 'getPreferredArtists']);
         Route::patch('/preferred-artists', [UserController::class, 'addPreferredArtists']);
         Route::delete('/preferred-artists', [UserController::class, 'removePreferredArtists']);
+        Route::get('/preferred-tracks', [UserController::class, 'getPreferredTracks']);
+        Route::patch('/preferred-tracks', [UserController::class, 'addPreferredTracks']);
+        Route::delete('/preferred-tracks', [UserController::class, 'removePreferredTracks']);
     });
 });
 

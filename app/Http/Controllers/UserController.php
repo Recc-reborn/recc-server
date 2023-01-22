@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 
 use App\Models\User;
 use App\Models\Artist;
+use App\Models\Track;
 
 class UserController extends Controller
 {
@@ -123,7 +124,7 @@ class UserController extends Controller
         $user = $request->user();
         return response()->json(
             $user->preferredArtists()
-                 ->get(['id'])->pluck(['id'])
+                ->get(['id'])->pluck(['id'])
         );
     }
 
@@ -142,6 +143,53 @@ class UserController extends Controller
 
         try {
             $user->removePreferredArtists($artistIdsToRemove);
+        } catch (QueryException) {
+            abort(422, 'One or more provided parameters are not correct');
+        }
+    }
+
+    /**
+     * Add preferred tracks for this user
+     */
+    public function addPreferredTracks(Request $request)
+    {
+        $user = $request->user();
+
+        try {
+            // $request->all() should return a list of artist IDs
+            $user->addPreferredTracks($request->all());
+        } catch (QueryException) {
+            abort(422, 'One or more provided parameters are not correct');
+        }
+    }
+
+    /**
+     * Get this user's preferred tracks IDs
+     */
+    public function getPreferredTracks(Request $request)
+    {
+        $user = $request->user();
+        return response()->json(
+            $user->preferredTracks()
+                ->get(['id'])->pluck(['id'])
+        );
+    }
+
+    /**
+     * Remove preferred tracks for this user
+     */
+    public function removePreferredTracks(Request $request)
+    {
+        $user = $request->user();
+
+        // $request->all() should return a list of last.fm artist URLs
+        $TrackIdsToRemove = Track::whereIn(
+            'id',
+            $request->all()
+        )->get('id')->pluck('id')->toArray();
+
+        try {
+            $user->removePreferredTracks($TrackIdsToRemove);
         } catch (QueryException) {
             abort(422, 'One or more provided parameters are not correct');
         }
