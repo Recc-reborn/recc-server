@@ -156,7 +156,6 @@ class CloneLastFMArtists extends Command
                     // not enough artists to complete page, we'll take it as if
                     // we retrieved all retrievable artists
                     $this->warn("Not enough artists ($artistCount) to fill a page ($this->artistsPerPage). Leaving seeder.");
-                    return 0;
                 }
             } catch (Exception $e) {
                 // error response
