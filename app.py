@@ -35,5 +35,8 @@ def create_playlist():
         app.logger.warning("Unsoported method call")
         raise HTTPException("Unsoported request method")
 
+    response = {
+        "data": [random.randint(0, 1000) for _ in range(10)]
+    }
     # For now return indexes between 0 and 1000, we can used as they are the songs id
-    return jsonify([random.randint(0, 1000) for _ in range(10)])
+    return jsonify(response)
