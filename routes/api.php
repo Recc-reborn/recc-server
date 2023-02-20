@@ -42,7 +42,7 @@ Route::name('popular-recommendations.')->prefix('popular/recommendations')->grou
 });
 
 Route::name('playbacks.')->prefix('playbacks')->group(function () {
-    Route::post('/', [PlaybackController::class, 'store'])->name('store')->middleware('auth.basic');
+    Route::post('/', [PlaybackController::class, 'store'])->name('store')->middleware('auth:sanctum');
     Route::delete('/{playback:id}', [PlaybackController::class, 'destroy'])->name('destroy');
 });
 
