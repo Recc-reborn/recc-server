@@ -17,7 +17,7 @@ class Playlist extends Model
      */
     public function creator()
     {
-        return $this->belongs(User::class);
+        return $this->belongsTo(User::class);
     }
 
     /**
@@ -25,6 +25,6 @@ class Playlist extends Model
      */
     public function tracks()
     {
-        return $this->belongsToMany(Track::class);
+        return $this->hasMany(Track::class);
     }
 }

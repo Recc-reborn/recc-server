@@ -81,6 +81,7 @@ Route::name('reccs.')->prefix('reccs')->middleware('auth:sanctum')->group(functi
 });
 
 Route::name('playlists.')->prefix('playlists')->middleware('auth:sanctum')->group(function () {
+    Route::get('/', [PlaylistController::class, 'index'])->name('index');
     Route::post('/', [PlaylistController::class, 'create'])->name('create');
 });
 
