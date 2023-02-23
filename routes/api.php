@@ -42,7 +42,7 @@ Route::name('popular-recommendations.')->prefix('popular/recommendations')->grou
 });
 
 Route::name('playbacks.')->prefix('playbacks')->group(function () {
-    Route::post('/', [PlaybackController::class, 'store'])->name('store')->middleware('auth.basic');
+    Route::post('/', [PlaybackController::class, 'store'])->name('store')->middleware('auth:sanctum');
     Route::delete('/{playback:id}', [PlaybackController::class, 'destroy'])->name('destroy');
 });
 
@@ -81,6 +81,7 @@ Route::name('reccs.')->prefix('reccs')->middleware('auth:sanctum')->group(functi
 });
 
 Route::name('playlists.')->prefix('playlists')->middleware('auth:sanctum')->group(function () {
+    Route::get('/', [PlaylistController::class, 'index'])->name('index');
     Route::post('/', [PlaylistController::class, 'create'])->name('create');
 });
 

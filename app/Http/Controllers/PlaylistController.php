@@ -6,12 +6,17 @@ use Illuminate\Http\Request;
 
 use App\Models\Playlist;
 use App\Enums\PlaylistOrigin;
+use Illuminate\Support\Facades\Auth;
 
 class PlaylistController extends Controller
 {
     public function index()
     {
-        return Playlist::get();
+        if (Auth::check()) {
+            $user_id = Auth::user()->id;
+            return Playlist::get();
+        }
+        return response('Unauthenticated', 401);
     }
 
     public function create(Request $request)

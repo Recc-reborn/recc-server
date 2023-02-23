@@ -64,6 +64,10 @@ class User extends Authenticatable
         return $this->belongsToMany(Artist::class, 'preferred_artists', 'user_id', 'artist_id');
     }
 
+    public function playlists()
+    {
+        return $this->hasMany(Playlist::class, 'user_playlist');
+    }
 
     /*
      * @param $artistIds array

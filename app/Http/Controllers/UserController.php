@@ -21,9 +21,8 @@ class UserController extends Controller
     {
         if (Auth::check()) {
             return Auth::user();
-        } else {
-            return response('Unauthenticated', 401);
         }
+        return response('Unauthenticated', 401);
     }
 
     /**
