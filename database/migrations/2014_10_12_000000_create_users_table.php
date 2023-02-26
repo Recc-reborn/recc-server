@@ -26,6 +26,7 @@ class CreateUsersTable extends Migration
 
         // User <-> Playlist many to many relationship
         Schema::create('user_playlist', function (Blueprint $table) {
+            $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('playlist_id')->constrained('playlists')->cascadeOnDelete();
         });

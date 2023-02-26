@@ -22,6 +22,7 @@ class CreateTracksTable extends Migration
 
         // tracks <-> tags many to many relationship
         Schema::create('track_tag', function (Blueprint $table) {
+            $table->id();
             $table->foreignId('track_id')->constrained()->onDelete('cascade');
             $table->foreignId('tag_id')->constrained()->onDelete('cascade');
         });
