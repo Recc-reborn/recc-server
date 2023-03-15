@@ -308,6 +308,11 @@ class CloneLastFMArtists extends Command
                     $album_art_url = (string) $trackInfo->album->image[array_key_last($trackInfo->album->image)]->{'#text'};
                 }
 
+                if (Track::where('url', (string) $trackInfo->url)->exists()) {
+                    $this->warn("----Not adding duplicated track \"$trackInfo->name\"");
+                    continue;
+                }
+
                 $track = new Track;
                 $track->title = $trackInfo->name;
                 $track->artist = $artist;

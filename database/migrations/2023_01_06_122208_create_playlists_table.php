@@ -28,6 +28,13 @@ return new class extends Migration
             $table->foreignId("playlist_id")->constrained('playlists')->cascadeOnDelete();
             $table->foreignId("track_id")->constrained('tracks')->cascadeOnDelete();
         });
+
+        // User <-> Playlist many to many relationship
+        Schema::create('user_playlist', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('playlist_id')->constrained('playlists')->cascadeOnDelete();
+        });
     }
 
     /**
@@ -39,5 +46,6 @@ return new class extends Migration
     {
         Schema::dropIfExists("playlists");
         Schema::dropIfExists("playlist_track");
+        Schema::dropIfExists("user_playlist");
     }
 };
