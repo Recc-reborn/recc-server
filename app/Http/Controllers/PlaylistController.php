@@ -23,8 +23,16 @@ class PlaylistController extends Controller
         if (!Auth::check()) {
             return response('Unauthenticated', 401);
         }
-
         return Playlist::findOrFail($id)->tracks()->get();
+    }
+
+    public function me()
+    {
+        if (!Auth::check()) {
+            return response('Unauthenticated', 401);
+        }
+        $user = Auth::user();
+        return $playlist = Playlist::where("user_id", $user->id)->get();
     }
 
     public function create(Request $request)
