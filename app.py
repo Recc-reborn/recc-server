@@ -1,17 +1,12 @@
 from werkzeug.exceptions import HTTPException
 from flask import Flask, jsonify, request
 from dotenv import load_dotenv
+import pandas as pd
+import numpy as np
 import json
 import random
 
-from db.create_db_engine import create_db_engine
-from db.querys_db import query_all_tracks
-
-load_dotenv()
-
-connection = create_db_engine()
 app = Flask(__name__)
-
 
 @app.errorhandler(HTTPException)
 def handle_exception(e):
