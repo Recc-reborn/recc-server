@@ -39,6 +39,11 @@ class Track extends Model
         return $this->belongsToMany(Tag::class, 'track_tag');
     }
 
+    public function playlists()
+    {
+        return $this->belongsToMany(Playlist::class, "playlist_track");
+    }
+
     public function toSearchableArray()
     {
         return [
