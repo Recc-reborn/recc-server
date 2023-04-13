@@ -1,13 +1,12 @@
 from werkzeug.exceptions import HTTPException
 from flask import Flask, jsonify, request
 from dotenv import load_dotenv
+import pandas as pd
+import numpy as np
 import json
 import random
 
-load_dotenv()
-
 app = Flask(__name__)
-
 
 @app.errorhandler(HTTPException)
 def handle_exception(e):
@@ -40,3 +39,14 @@ def create_playlist():
     }
     # For now return indexes between 0 and 1000, we can used as they are the songs id
     return jsonify(response)
+
+
+@app.route("/test", methods=['GET'])
+def demo():
+    if request.method != "GET":
+        app.logger.warning("Unsoported method call")
+        raise HTTPException("Unsoported request method")
+
+    response = query_all_tracks(connection)
+
+    return jsonify([dict(dict_row) for dict_row in response.mappings()])
