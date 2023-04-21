@@ -12,8 +12,8 @@ from rfc3339 import rfc3339
 import logging
 from ResponseClass import Good_Response, Bad_Response
 
-learning_matrix = pd.read_csv('./recomendation_IA.csv', index_col=0)
-valid_songs = learning_matrix.index.to_list()
+# learning_matrix = pd.read_csv('./recomendation_IA.csv', index_col=0)
+# valid_songs = learning_matrix.index.to_list()
 app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
 print('App running...')
