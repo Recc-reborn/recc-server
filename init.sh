@@ -2,8 +2,10 @@
 
 cd /app
 
-pip install pipenv
+pip3 install pipenv pandas colors.py rfc3339 numpy
 
-pipenv install
+pipenv install --python /usr/bin/python3
+
+pipenv run pip install pandas colors.py rfc3339 numpy
 
 make start-prod
