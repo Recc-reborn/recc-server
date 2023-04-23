@@ -98,16 +98,16 @@ def create_custom_playlist(id, amount_songs: int = 10):
     day_filter = filter_by_day(date_now, res)
     hour_filter = filter_by_hours(date_now, day_filter)
 
-    return hour_filter
+    # return hour_filter
 
     frecuency_data = get_playback_grouped(hour_filter)
     song_to_recomend = check_frecuency_get_ids(frecuency_data)
     total_songs = amount_songs * len(song_to_recomend)
-    
+
     new_playlist = recomendation_system(song_to_recomend, amount_songs)
 
     return new_playlist, total_songs
-    
+
 
 # EndPoints
 @app.before_request
