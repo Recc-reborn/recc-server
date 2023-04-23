@@ -5,6 +5,7 @@ sail = ./vendor/bin/sail
 # Docker image management
 up:
 	$(sail) up -d
+    $(sail) artisan scout:import "App\Models\Track"
 
 stop:
 	$(sail) stop
@@ -42,7 +43,7 @@ ascii-recc:
 ascii-recc-reborn:
 	cat "recc-reborn-ascii.txt"
 
-start: up ascii-recc
+start:up ascii-recc
 
 tinker:
 	$(sail) artisan tinker
