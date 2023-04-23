@@ -10,6 +10,7 @@ from rfc3339 import rfc3339
 import logging
 from ResponseClass import Good_Response, Bad_Response
 import db.db_engine as DB
+import pandas as pnd
 
 db_instance = DB.create_instance()
 learning_matrix = pd.read_csv('./recomendation_IA.csv', index_col=0)
@@ -77,7 +78,20 @@ def filter_by_hours(current_date: datetime.datetime, data: list[any]) -> list[an
     return result
 
 
-def create_custom_playlist(id, amount_sogns: int = 10):
+def get_playback_grouped(data: list[any]) -> list[any]:
+    df = pnd.DataFrame(data=data)
+    df.drop(labels=['date', 'user_id'], inplace=True, axis=1)
+    frecuency_ids = df['track_id'].value_counts().to_frame('count').rename_axis('track_id').reset_index()
+    result = frecuency_ids.sort_values(by='count')['track_id'].to_list()
+    return result
+
+def check_frecuency_get_ids(data: list[any]) -> list[int]:
+    if (len(data) > 5):
+        return data[:4]
+    return data
+
+
+def create_custom_playlist(id, amount_songs: int = 10):
     res = DB.get_playbacks(db_instace=db_instance, user_id=id)
     date_now = datetime.datetime(2023, 4, 21, 14, 0, 0) # debug date
     # date_now = datetime.datetime.now()
@@ -86,6 +100,14 @@ def create_custom_playlist(id, amount_sogns: int = 10):
 
     return hour_filter
 
+    frecuency_data = get_playback_grouped(hour_filter)
+    song_to_recomend = check_frecuency_get_ids(frecuency_data)
+    total_songs = amount_songs * len(song_to_recomend)
+    
+    new_playlist = recomendation_system(song_to_recomend, amount_songs)
+
+    return new_playlist, total_songs
+    
 
 # EndPoints
 @app.before_request
@@ -176,6 +198,7 @@ def my_playlist():
     if (len(user_id) > 1):
         return make_response({'response': Bad_Response("Bad Request").Get_Response()}, 400)
 
-    service_data = create_custom_playlist(user_id[0])
+    service_data, expected_songs = create_custom_playlist(user_id[0])
+    print(expected_songs)
     dto = Good_Response(service_data, len(service_data))
     return jsonify({'response': dto.Get_Response()})
