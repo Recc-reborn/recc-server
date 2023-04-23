@@ -5,7 +5,10 @@ sail = ./vendor/bin/sail
 # Docker image management
 up:
 	$(sail) up -d
-    $(sail) artisan scout:import "App\Models\Track"
+	sleep 3
+	$(sail) artisan scout:import "App\Models\Track"
+	sleep 3
+	$(sail) artisan scout:import "App\Models\Artist"
 
 stop:
 	$(sail) stop
