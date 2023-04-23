@@ -1,19 +1,16 @@
 version: '3'
 
 services:
-    recc-recc:
-        image: python:3.10-bullseye
-        volumes:
-          - ./:/app
-        command: sh /app/init.sh
-        extra_hosts:
-            - 'host.docker.internal:host-gateway'
-        environment:
-              APP_PORT: 5000
-        ports:
-            - '5000:5000'
-        networks:
-            - recc-server
+  recc-recc:
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    environment:
+        APP_PORT: 5000
+    ports:
+      - '5000:5000'
+    networks:
+      - recc-server
+    build: .
 
 networks:
   recc-server:
