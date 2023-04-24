@@ -66,7 +66,7 @@ def get_song_id(db_instance, url: str) -> int:
         return -1
 
 
-def get_playbacks(db_instace, user_id):
+def get_user_playbacks(db_instace, user_id):
     try:
         cursor = db_instace.cursor(buffered=True)
         cursor.execute(f'SELECT user_id, track_id, created_at  FROM playbacks WHERE user_id={user_id}')
@@ -84,4 +84,24 @@ def get_playbacks(db_instace, user_id):
         return resulst
     except Exception as err:
         print(f"Error on this user: {user_id}")
+        return []
+
+
+def get_playbacks(db_instace):
+    try:
+        cursor = db_instace.cursor(buffered=True)
+        cursor.execute(f'SELECT user_id, track_id, created_at  FROM playbacks;')
+        data =  cursor.fetchall()
+        if (len(data) < 1):
+            return []
+        resulst = []
+        for row in data:
+            temp_obj = { 
+                'user_id': row[0],
+                'track_id': row[1],
+                'date': row[2]
+            }
+            resulst.append(temp_obj)
+        return resulst
+    except Exception as err:
         return []
