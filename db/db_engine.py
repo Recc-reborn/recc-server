@@ -65,7 +65,6 @@ def get_song_id(db_instance, url: str) -> int:
         print(f"Error on this url: {url}")
         return -1
 
-
 def get_user_playbacks(db_instace, user_id):
     try:
         cursor = db_instace.cursor(buffered=True)
@@ -75,7 +74,7 @@ def get_user_playbacks(db_instace, user_id):
             return []
         resulst = []
         for row in data:
-            temp_obj = { 
+            temp_obj = {
                 'user_id': row[0],
                 'track_id': row[1],
                 'date': row[2]
@@ -86,7 +85,6 @@ def get_user_playbacks(db_instace, user_id):
         print(f"Error on this user: {user_id}")
         return []
 
-
 def get_playbacks(db_instace):
     try:
         cursor = db_instace.cursor(buffered=True)
@@ -96,7 +94,7 @@ def get_playbacks(db_instace):
             return []
         resulst = []
         for row in data:
-            temp_obj = { 
+            temp_obj = {
                 'user_id': row[0],
                 'track_id': row[1],
                 'date': row[2]
@@ -118,3 +116,15 @@ def get_user_favorites(db_intance, user_id):
         return results
     except Exception as err:
         return []
+
+def add_tracks_to_playlist(db_instance, playlist_id: int, track_ids: list[int]) -> None:
+    try:
+        for track_id in track_ids:
+            cursor = db_instance.cursor(buffered=True)
+            query = ("INSERT INTO (playlist_id, track_id) VALUES(%s, %s)")
+            values = (playlist_id, track_id)
+            cursor.execute(query, values)
+            db_instance.commit()
+            cursor.close()
+    except Exception as err:
+        print(f"Error adding tracks to playlist: {err}")

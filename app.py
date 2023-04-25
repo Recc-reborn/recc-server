@@ -232,14 +232,18 @@ def greet():
 
 @app.route('/api/create_playlist', methods=["GET"])
 def create_playlist():
-    song_ids_query = request.args.get('id', type=str)
+    song_ids_query = request.args.get('song_ids', type=str)
+    playlist_id = request.args.get('playlist_id', type=int)
     if (song_ids_query == ""):
         return make_response({'response': Bad_Response("Bad Request").Get_Response()}, 400)
 
-    songs_ids = str(song_ids_query).split(',')
+    song_ids = str(song_ids_query).split(',')
     songs = request.args.get('song_count', type=int)
 
-    results = recomendation_system(songs_ids, songs)
+
+    results = recomendation_system(song_ids, songs)
+    if playlist_id != None:
+        DB.add_tracks_to_playlist(DB, playlist_id, results)
     dto = Good_Response(results, len(results))
     return jsonify({'response': dto.Get_Response()}), 200
 
