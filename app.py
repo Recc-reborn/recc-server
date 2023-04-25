@@ -37,10 +37,13 @@ def recomend_multiple_songs(ids: list[str], amount_songs: int = 10):
         recodantions_per_song.append(recomend_a_song(id, amount_songs))
 
     temp_reconendation = set(np.concatenate(recodantions_per_song).tolist())
+    print(temp_reconendation)
     return list(temp_reconendation)
 
 
 def recomendation_system(ids: list[str], amount_songs: int = 10):
+    if (len(ids) <= 0):
+        return []
     if (len(ids) > 1):
         return recomend_multiple_songs(ids, amount_songs)
     return recomend_a_song(ids[0], amount_songs)
@@ -107,25 +110,37 @@ def get_playback_grouped(data: list[any]) -> list[any]:
 
 
 def check_frecuency_get_ids(data: list[any]) -> list[int]:
+    if (len(data) <= 0):
+        return []
     if (len(data) > 5):
         return data[:4]
     return data
 
+def create_custom_playlist_favorites(id, amount_songs: int = 10):
+    user_favorites = DB.get_user_favorites(db_instance, id)
+    if (len(user_favorites) <= 0):
+        return []
+    ids_str = [str(id) for id in user_favorites]
+    new_playlist = recomendation_system(ids_str, amount_songs)
+    return new_playlist
+
 
 def create_custom_playlist(id, amount_songs: int = 10):
     res = DB.get_user_playbacks(db_instace=db_instance, user_id=id)
-    date_now = datetime.datetime(2023, 3, 20, 14, 0, 0) # debug date
+    if (len(res) <= 0):
+        result = create_custom_playlist_favorites(id, amount_songs)
+        return result
+    date_now = datetime.datetime(2023, 3, 10, 18, 0, 0) # debug date
     # date_now = datetime.datetime.now()
     day_filter = filter_by_day(date_now, res)
     hour_filter = filter_by_hours(date_now, day_filter)
 
     frecuency_data = get_playback_grouped(hour_filter)
     song_to_recomend = check_frecuency_get_ids(frecuency_data)
-    total_songs = amount_songs * len(song_to_recomend)
 
     new_playlist = recomendation_system(song_to_recomend, amount_songs)
 
-    return new_playlist, total_songs
+    return new_playlist
 
 
 def all_time_playlist(amount_songs: int = 10):
@@ -236,8 +251,7 @@ def my_playlist():
     if (len(user_id) > 1):
         return make_response({'response': Bad_Response("Bad Request").Get_Response()}, 400)
 
-    service_data, expected_songs = create_custom_playlist(user_id[0])
-    print(expected_songs)
+    service_data = create_custom_playlist(user_id[0])
     dto = Good_Response(service_data, len(service_data))
     return jsonify({'response': dto.Get_Response()})
 

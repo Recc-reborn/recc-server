@@ -105,3 +105,16 @@ def get_playbacks(db_instace):
         return resulst
     except Exception as err:
         return []
+
+def get_user_favorites(db_intance, user_id):
+    try:
+        cursor = db_intance.cursor(buffered=True)
+        cursor.execute(f'SELECT track_id from preferred_tracks where user_id={user_id}')
+        data = cursor.fetchall()
+        if (len(data) <= 0): return []
+        results = []
+        for row in data:
+            results.append(row[0])
+        return results
+    except Exception as err:
+        return []
