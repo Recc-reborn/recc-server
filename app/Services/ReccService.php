@@ -13,14 +13,20 @@ class ReccService {
         $this->client = new Client(['base_uri' => $this->baseEndpoint]);
     }
 
-    public function createPlaylist(array $ids, string $httpMethod = "POST")
+    public function createCustomPlaylist(string $song_ids, int $playlist_id)
     {
         $response = $this->client->request(
-            $httpMethod,
-            "/create_playlist",
+            "GET",
+            "/api/create_playlist",
             [
-                "form_params" => $ids
+                "query" => [
+                    "song_ids" => $song_ids,
+                    "playlist_id" => $playlist_id
+                ]
             ]
         );
+
+        $body = $response->getBody()->getContents();
+        return json_decode($body);
     }
 }
