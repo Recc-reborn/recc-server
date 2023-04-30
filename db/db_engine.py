@@ -65,6 +65,7 @@ def get_song_id(db_instance, url: str) -> int:
         print(f"Error on this url: {url}")
         return -1
 
+
 def get_user_playbacks(db_instace, user_id):
     try:
         cursor = db_instace.cursor(buffered=True)
@@ -85,6 +86,7 @@ def get_user_playbacks(db_instace, user_id):
         print(f"Error on this user: {user_id}")
         return []
 
+
 def get_playbacks(db_instace):
     try:
         cursor = db_instace.cursor(buffered=True)
@@ -92,17 +94,18 @@ def get_playbacks(db_instace):
         data =  cursor.fetchall()
         if (len(data) < 1):
             return []
-        resulst = []
+        results = []
         for row in data:
             temp_obj = {
                 'user_id': row[0],
                 'track_id': row[1],
                 'date': row[2]
             }
-            resulst.append(temp_obj)
-        return resulst
+            results.append(temp_obj)
+        return results
     except Exception as err:
         return []
+
 
 def get_user_favorites(db_intance, user_id):
     try:
@@ -117,14 +120,34 @@ def get_user_favorites(db_intance, user_id):
     except Exception as err:
         return []
 
+
+def create_auto_playlist(db_instance, user_id: int, title: str, origin: str = "AUTO") -> int:
+    """Creates a new auto playlists (using playbacks) and returns its id"""
+    try:
+        cursor = db_instance.cursor(buffered=True)
+        query = ("INSERT INTO playlists (title, origin, user_id, created_at, updated_at) VALUES(%s, %s, %s, %s, %s)")
+        time = datetime.now()
+        values = (title, origin, user_id, time, time)
+        cursor.execute(query, values)
+        db_instance.commit()
+
+        cursor.execute(f"SELECT id FROM playlists WHERE title=\"{title}\" AND origin=\"{origin}\" AND user_id=\"{user_id}\"")
+        data = cursor.fetchall()
+        id = data[-1][0]
+        cursor.close()
+        return id
+    except Exception as err:
+        print(f"Error adding tracks to playlist: {err}")
+
+
 def add_tracks_to_playlist(db_instance, playlist_id: int, track_ids: list[int]) -> None:
     try:
+        cursor = db_instance.cursor(buffered=True)
         for track_id in track_ids:
-            cursor = db_instance.cursor(buffered=True)
-            query = ("INSERT INTO (playlist_id, track_id) VALUES(%s, %s)")
+            query = ("INSERT INTO playlist_track (playlist_id, track_id) VALUES(%s, %s)")
             values = (playlist_id, track_id)
             cursor.execute(query, values)
             db_instance.commit()
-            cursor.close()
+        cursor.close()
     except Exception as err:
         print(f"Error adding tracks to playlist: {err}")
