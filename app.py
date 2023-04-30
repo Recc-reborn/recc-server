@@ -34,7 +34,7 @@ def recomend_a_song(id: str, amount_songs: int = 10) -> list[int]:
 def recomend_multiple_songs(ids: list[str], amount_songs: int = 10):
     recodantions_per_song = []
     for id in ids:
-        recodantions_per_song.append(recomend_a_song(id, amount_songs))
+        recodantions_per_song.append(recomend_a_song(str(id), amount_songs))
 
     temp_reconendation = set(np.concatenate(recodantions_per_song).tolist())
     print(temp_reconendation)
@@ -46,7 +46,7 @@ def recomendation_system(ids: list[str], amount_songs: int = 10):
         return []
     if (len(ids) > 1):
         return recomend_multiple_songs(ids, amount_songs)
-    return recomend_a_song(ids[0], amount_songs)
+    return recomend_a_song(str(ids[0]), amount_songs)
 
 
 def filter_by_day(current_date: datetime, data: list[any]) -> list[any]:
@@ -130,7 +130,7 @@ def create_custom_playlist(id, amount_songs: int = 10):
     if (len(res) <= 0):
         result = create_custom_playlist_favorites(id, amount_songs)
         return result
-    date_now = datetime.datetime(2023, 3, 10, 18, 0, 0) # debug date
+    date_now = datetime.datetime(2023, 4, 22, 19, 0, 0) # debug date
     # date_now = datetime.datetime.now()
     day_filter = filter_by_day(date_now, res)
     hour_filter = filter_by_hours(date_now, day_filter)
