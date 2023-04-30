@@ -65,6 +65,7 @@ def get_song_id(db_instance, url: str) -> int:
         print(f"Error on this url: {url}")
         return -1
 
+
 def get_user_playbacks(db_instace, user_id):
     try:
         cursor = db_instace.cursor(buffered=True)
@@ -84,6 +85,7 @@ def get_user_playbacks(db_instace, user_id):
     except Exception as err:
         print(f"Error on this user: {user_id}")
         return []
+
 
 def get_playbacks(db_instace):
     try:
