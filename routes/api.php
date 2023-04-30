@@ -84,6 +84,7 @@ Route::name('playlists.')->prefix('playlists')->middleware('auth:sanctum')->grou
     Route::get('/', [PlaylistController::class, 'index'])->name('index');
     Route::get('/me', [PlaylistController::class, 'me'])->name('me');
     Route::post('/custom', [PlaylistController::class, 'createCustom'])->name('createCustom');
+    Route::post('/auto', [PlaylistController::class, 'create'])->name('create');
     Route::get('/{id}', [PlaylistController::class, 'show'])->name('show');
 });
 
