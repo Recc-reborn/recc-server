@@ -141,7 +141,6 @@ def create_custom_playlist(id, amount_songs: int = 10) -> list[int] | str:
     playlist_title = date_now.date().strftime("%d/%m/%Y") + " " + playback_time
     playbacks = DB.get_user_playbacks(db_instance=db_instance, user_id=id)
     origin = ""
-    print(playbacks)
     if len(playbacks) > 0:
         origin = "AUTO"
         day_filter = filter_by_day(date_now, playbacks)
@@ -256,9 +255,9 @@ def create_playlist():
     song_ids = [ str(i) for i in song_ids]
     playlist_id = data['playlist_id']
     if (song_ids == None):
-        return make_response({'response': Bad_Response("Missing song_ids argument").Get_Response()}, 400)
+        return make_response({'response': Bad_Response("Missing song_ids argument").Get_Response()}, 500)
     if (playlist_id == None):
-        return make_response({'response': Bad_Response("Missing playlist_id argument").Get_Response()}, 400)
+        return make_response({'response': Bad_Response("Missing playlist_id argument").Get_Response()}, 500)
     song_count = request.form.get('song_count', type=int)
     if (song_count == None):
         song_count = default_song_count
@@ -275,13 +274,13 @@ def my_playlist():
     """Enpoint for cold start and playback based playlists"""
     user_id = request.args.get('user_id', type=int)
     if (user_id == None):
-        return make_response({'response': Bad_Response("Missing argument \"user_id\"").Get_Response()}, 400)
+        return make_response({'response': Bad_Response("Missing argument \"user_id\"").Get_Response()}, 500)
 
     service_data, origin, title = create_custom_playlist(user_id)
     if (len(service_data) <= 0):
-        return make_response({'response': Bad_Response("There are not enough playbacks").Get_Response()}, 400)
+        return make_response({'response': Bad_Response("There are not enough playbacks").Get_Response()}, 500)
     elif service_data[0] == -1:
-        return make_response({'response': Bad_Response(f"{title} already exists").Get_Response()}, 400)
+        return make_response({'response': Bad_Response(f"{title} already exists").Get_Response()}, 500)
     playlist_id = DB.create_auto_playlist(db_instance,  user_id, title, origin)
     DB.add_tracks_to_playlist(db_instance, playlist_id, service_data)
 
