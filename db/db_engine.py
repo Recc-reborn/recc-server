@@ -37,7 +37,7 @@ def add_artist(db_instance, artist: dict):
 def add_track(db_instance, track: dict) -> str:
     """Adds an Last.fm fetched track into recc database"""
     try:
-        cursor = db_instance.cursor(buffered=True)
+        cursor = db_instance.cursor()
         cursor.execute(f"SELECT * FROM tracks WHERE url='{track['url']}'")
         res = cursor.fetchall()
         print("res: ", res)
@@ -57,41 +57,23 @@ def add_track(db_instance, track: dict) -> str:
 def get_song_id(db_instance, url: str) -> int:
     """Looks into the DB for a certain song and gets the Id"""
     try:
-        cursor = db_instance.cursor(buffered=True)
+        cursor = db_instance.cursor()
         cursor.execute(f"SELECT id FROM tracks WHERE url='{url}'")
         res = cursor.fetchall()
+        db_instance.commit()
+        cursor.close()
         return res[0][0]
     except Exception as err:
         print(f"Error on this url: {url}")
         return -1
 
 
-def get_user_playbacks(db_instace, user_id):
+def get_user_playbacks(db_instance, user_id):
     try:
-        cursor = db_instace.cursor(buffered=True)
+        cursor = db_instance.cursor()
         cursor.execute(f'SELECT user_id, track_id, created_at  FROM playbacks WHERE user_id={user_id}')
         data =  cursor.fetchall()
-        if (len(data) < 1):
-            return []
-        resulst = []
-        for row in data:
-            temp_obj = {
-                'user_id': row[0],
-                'track_id': row[1],
-                'date': row[2]
-            }
-            resulst.append(temp_obj)
-        return resulst
-    except Exception as err:
-        print(f"Error on this user: {user_id}")
-        return []
-
-
-def get_playbacks(db_instace):
-    try:
-        cursor = db_instace.cursor(buffered=True)
-        cursor.execute(f'SELECT user_id, track_id, created_at  FROM playbacks;')
-        data =  cursor.fetchall()
+        db_instance.commit()
         if (len(data) < 1):
             return []
         results = []
@@ -102,20 +84,62 @@ def get_playbacks(db_instace):
                 'date': row[2]
             }
             results.append(temp_obj)
+        cursor.close()
+        return results
+    except Exception as err:
+        print(f"Error on this user: {user_id}")
+        return []
+
+
+def get_playbacks(db_instance):
+    try:
+        cursor = db_instance.cursor()
+        cursor.execute(f'SELECT user_id, track_id, created_at  FROM playbacks;')
+        data =  cursor.fetchall()
+        db_instance.commit()
+        if (len(data) < 1):
+            return []
+        results = []
+        for row in data:
+            temp_obj = {
+                'user_id': row[0],
+                'track_id': row[1],
+                'date': row[2]
+            }
+            results.append(temp_obj)
+        cursor.close()
         return results
     except Exception as err:
         return []
 
 
-def get_user_favorites(db_intance, user_id):
+def get_user_favorites(db_instance, user_id):
     try:
-        cursor = db_intance.cursor(buffered=True)
+        cursor = db_instance.cursor()
         cursor.execute(f'SELECT track_id from preferred_tracks where user_id={user_id}')
         data = cursor.fetchall()
+        db_instance.commit()
         if (len(data) <= 0): return []
         results = []
         for row in data:
             results.append(row[0])
+        cursor.close()
+        return results
+    except Exception as err:
+        return []
+
+
+def get_playlist_by_title(db_instance, title: str, user_id: int):
+    try:
+        cursor = db_instance.cursor()
+        cursor.execute(f'SELECT * FROM playlists WHERE user_id={user_id} AND title=\"{title}\"')
+        data = cursor.fetchall()
+        db_instance.commit()
+        if (len(data) <= 0): return []
+        results = []
+        for row in data:
+            results.append(row)
+        cursor.close()
         return results
     except Exception as err:
         return []
@@ -124,15 +148,15 @@ def get_user_favorites(db_intance, user_id):
 def create_auto_playlist(db_instance, user_id: int, title: str, origin: str = "AUTO") -> int:
     """Creates a new auto playlists (using playbacks) and returns its id"""
     try:
-        cursor = db_instance.cursor(buffered=True)
+        cursor = db_instance.cursor()
         query = ("INSERT INTO playlists (title, origin, user_id, created_at, updated_at) VALUES(%s, %s, %s, %s, %s)")
         time = datetime.now()
         values = (title, origin, user_id, time, time)
         cursor.execute(query, values)
-        db_instance.commit()
 
         cursor.execute(f"SELECT id FROM playlists WHERE title=\"{title}\" AND origin=\"{origin}\" AND user_id=\"{user_id}\"")
         data = cursor.fetchall()
+        db_instance.commit()
         id = data[-1][0]
         cursor.close()
         return id
@@ -142,12 +166,12 @@ def create_auto_playlist(db_instance, user_id: int, title: str, origin: str = "A
 
 def add_tracks_to_playlist(db_instance, playlist_id: int, track_ids: list[int]) -> None:
     try:
-        cursor = db_instance.cursor(buffered=True)
+        cursor = db_instance.cursor()
         for track_id in track_ids:
             query = ("INSERT INTO playlist_track (playlist_id, track_id) VALUES(%s, %s)")
             values = (playlist_id, track_id)
             cursor.execute(query, values)
-            db_instance.commit()
+        db_instance.commit()
         cursor.close()
     except Exception as err:
         print(f"Error adding tracks to playlist: {err}")

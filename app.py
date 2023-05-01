@@ -23,6 +23,7 @@ default_song_count = 8
 MORNING = "Morning"
 AFTERNOON = "Afternoon"
 NIGHT = "Night"
+FIRST_PLAYLIST_TITLE = "First playlist"
 
 # Services
 def is_valid_id(id: int) -> bool:
@@ -134,33 +135,28 @@ def create_custom_playlist_favorites(id, amount_songs: int = 10):
 
 def create_custom_playlist(id, amount_songs: int = 10) -> list[int] | str:
     """Creates a new playlist automatically generated either based on playbacks or preferred tracks"""
-    res = DB.get_user_playbacks(db_instace=db_instance, user_id=id)
-    if (len(res) <= 0):
-        result = create_custom_playlist_favorites(id, amount_songs)
-        return result, "COLD", "First playlist"
-
     # date_now = datetime.datetime(2023, 3, 10, 18, 0, 0) # debug date
     date_now = datetime.datetime.now()
+    playback_time = get_playback_time(date_now)
+    playlist_title = date_now.date().strftime("%d/%m/%Y") + " " + playback_time
+    playbacks = DB.get_user_playbacks(db_instance=db_instance, user_id=id)
+    origin = ""
+    print(playbacks)
+    if len(playbacks) > 0:
+        origin = "AUTO"
+        day_filter = filter_by_day(date_now, playbacks)
+        hour_filter = filter_by_hours(date_now, day_filter)
+        frecuency_data = get_playback_grouped(hour_filter)
+        song_to_recomend = check_frecuency_get_ids(frecuency_data)
+        result = recomendation_system(song_to_recomend, amount_songs)
+    else:
+        origin = "COLD"
+        playlist_title = FIRST_PLAYLIST_TITLE
+        result = create_custom_playlist_favorites(id, amount_songs)
 
-    # If a playlist has already been created for this specific day and hour
-    if date_now.date() == res[-1]["date"].date() and get_playback_time(date_now) == get_playback_time(res[-1]["date"]):
-        return make_response({'response': Bad_Response("a playlist has already been created for this day and time").Get_Response()}, 400)
-
-    day_filter = filter_by_day(date_now, res)
-    hour_filter = filter_by_hours(date_now, day_filter)
-
-    print("day: ", day_filter)
-    print("hour: ", hour_filter)
-
-    frecuency_data = get_playback_grouped(hour_filter)
-
-    print("frecuency: ", frecuency_data)
-    song_to_recomend = check_frecuency_get_ids(frecuency_data)
-
-    new_playlist = recomendation_system(song_to_recomend, amount_songs)
-    print("new_playlist: ", new_playlist)
-
-    return new_playlist, "START", date_now.date().strftime("%d/%m/%Y") + " " + get_playback_time(date_now)
+    if len(DB.get_playlist_by_title(db_instance, playlist_title, id)) > 0:
+        return [-1], "", playlist_title
+    return result, origin, playlist_title
 
 
 def all_time_playlist(amount_songs: int = 10):
@@ -268,7 +264,6 @@ def create_playlist():
         song_count = default_song_count
 
     results = recomendation_system(song_ids, song_count)
-    print("results: ", results)
     if playlist_id != None:
         DB.add_tracks_to_playlist(db_instance, playlist_id, results)
     dto = Good_Response(results, len(results))
@@ -278,13 +273,15 @@ def create_playlist():
 @app.route('/api/my_playlist', methods=["GET"])
 def my_playlist():
     """Enpoint for cold start and playback based playlists"""
-    user_id = request.args.get('user_id', type=str)
+    user_id = request.args.get('user_id', type=int)
     if (user_id == None):
         return make_response({'response': Bad_Response("Missing argument \"user_id\"").Get_Response()}, 400)
 
-    service_data, origin, title = create_custom_playlist(user_id[0])
+    service_data, origin, title = create_custom_playlist(user_id)
     if (len(service_data) <= 0):
         return make_response({'response': Bad_Response("There are not enough playbacks").Get_Response()}, 400)
+    elif service_data[0] == -1:
+        return make_response({'response': Bad_Response(f"{title} already exists").Get_Response()}, 400)
     playlist_id = DB.create_auto_playlist(db_instance,  user_id, title, origin)
     DB.add_tracks_to_playlist(db_instance, playlist_id, service_data)
 
