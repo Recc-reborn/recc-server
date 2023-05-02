@@ -15,7 +15,7 @@ class ReccService {
     public function createAutoPlaylist(int $userId) {
         $response = $this->client->request(
             "GET",
-            "/api/create_playlist",
+            "/api/my_playlist",
             [
                 "query" => [
                     "user_id" => $userId
