@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Playlist;
 use App\Enums\PlaylistOrigin;
 use Illuminate\Support\Facades\Auth;
+use App\Services\ReccService;
 
 class PlaylistController extends Controller
 {
@@ -35,14 +36,20 @@ class PlaylistController extends Controller
         return $playlist = Playlist::where("user_id", $user->id)->get();
     }
 
-    public function create(Request $request)
-    {
+    public function create(ReccService $reccService) {
+        if (!Auth::check())
+            return response("Unauthenticated", 401);
+        $user = Auth::user();
+        $reccService->createAutoPlaylist($user->id);
+    }
+
+    public function createCustom(ReccService $reccService, Request $request) {
         if (!Auth::check())
             return response("Unauthenticated", 401);
 
         $request->validate([
             "title" => "string",
-            "tracks" => "array"
+            "track_ids" => "array"
         ]);
 
         $newPlaylist = new Playlist;
@@ -51,7 +58,7 @@ class PlaylistController extends Controller
         $newPlaylist->origin = PlaylistOrigin::CUSTOM;
         $newPlaylist->save();
 
-        $newPlaylist->tracks()->sync($request->input("tracks"));
+        $reccService->createCustomPlaylist($request->input("track_ids"), $newPlaylist->id);
 
         return $newPlaylist;
     }
