@@ -19,6 +19,11 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
 print('App running...')
 
+default_song_count = 8
+MORNING = "Morning"
+AFTERNOON = "Afternoon"
+NIGHT = "Night"
+FIRST_PLAYLIST_TITLE = "First playlist"
 
 # Services
 def is_valid_id(id: int) -> bool:
@@ -54,7 +59,6 @@ def filter_by_day(current_date: datetime, data: list[any]) -> list[any]:
     for row in data:
         if (row['date'].weekday() == current_date.weekday()):
             result.append(row)
-
     return result
 
 
@@ -74,19 +78,24 @@ def same_month(current_date: datetime.datetime, date_check: datetime.datetime):
     return current_date.month == date_check.month
 
 
+def get_playback_time(date: datetime.datetime) -> list[any]:
+    if (is_morning(date)):
+        return MORNING
+    elif (is_afternoon(date)):
+        return AFTERNOON
+    elif (is_nigth(date)):
+        return NIGHT
+
+
 def filter_by_hours(current_date: datetime.datetime, data: list[any]) -> list[any]:
     result = []
-
     for row in data:
         if (is_morning(current_date) and is_morning(row['date'])):
             result.append(row)
-            continue
         elif (is_afternoon(current_date) and is_afternoon(row['date'])):
             result.append(row)
-            continue
         elif (is_nigth(current_date) and is_nigth(row['date'])):
             result.append(row)
-            continue
     return result
 
 
@@ -95,7 +104,6 @@ def filter_by_month(current_date: datetime.datetime, data: list[any]) -> list[an
     for row in data:
         if (same_month(current_date, row['date'])):
             result.append(row)
-
     return result
 
 
@@ -125,22 +133,29 @@ def create_custom_playlist_favorites(id, amount_songs: int = 10):
     return new_playlist
 
 
-def create_custom_playlist(id, amount_songs: int = 10):
-    res = DB.get_user_playbacks(db_instace=db_instance, user_id=id)
-    if (len(res) <= 0):
+def create_custom_playlist(id, amount_songs: int = 10) -> list[int] | str:
+    """Creates a new playlist automatically generated either based on playbacks or preferred tracks"""
+    # date_now = datetime.datetime(2023, 3, 10, 18, 0, 0) # debug date
+    date_now = datetime.datetime.now()
+    playback_time = get_playback_time(date_now)
+    playlist_title = date_now.date().strftime("%d/%m/%Y") + " " + playback_time
+    playbacks = DB.get_user_playbacks(db_instance=db_instance, user_id=id)
+    origin = ""
+    if len(playbacks) > 0:
+        origin = "AUTO"
+        day_filter = filter_by_day(date_now, playbacks)
+        hour_filter = filter_by_hours(date_now, day_filter)
+        frecuency_data = get_playback_grouped(hour_filter)
+        song_to_recomend = check_frecuency_get_ids(frecuency_data)
+        result = recomendation_system(song_to_recomend, amount_songs)
+    else:
+        origin = "COLD"
+        playlist_title = FIRST_PLAYLIST_TITLE
         result = create_custom_playlist_favorites(id, amount_songs)
-        return result
-    date_now = datetime.datetime(2023, 4, 22, 19, 0, 0) # debug date
-    # date_now = datetime.datetime.now()
-    day_filter = filter_by_day(date_now, res)
-    hour_filter = filter_by_hours(date_now, day_filter)
 
-    frecuency_data = get_playback_grouped(hour_filter)
-    song_to_recomend = check_frecuency_get_ids(frecuency_data)
-
-    new_playlist = recomendation_system(song_to_recomend, amount_songs)
-
-    return new_playlist
+    if len(DB.get_playlist_by_title(db_instance, playlist_title, id)) > 0:
+        return [-1], "", playlist_title
+    return result, origin, playlist_title
 
 
 def all_time_playlist(amount_songs: int = 10):
@@ -201,7 +216,9 @@ def log_request(response):
 
     parts = []
     for name, value, color in log_params:
-        part = colors.color("{}={}".format(name, value), fg=color)
+        # TODO: enable colors for logger
+        # part = colors.color("{}={}".format(name, value), fg=color)
+        part = "{}={}".format(name, value)
         parts.append(part)
     line = " ".join(parts)
 
@@ -230,28 +247,43 @@ def greet():
     return "Hello :)"
 
 
-@app.route('/api/create_playlist', methods=["GET"])
+@app.route('/api/create_playlist', methods=["POST"])
 def create_playlist():
-    song_ids_query = request.args.get('id', type=str)
-    if (song_ids_query == ""):
-        return make_response({'response': Bad_Response("Bad Request").Get_Response()}, 400)
+    """New playlist generated manually by the user (selecting tracks by its own)"""
+    data = request.get_json()
+    song_ids = data['song_ids']
+    song_ids = [ str(i) for i in song_ids]
+    playlist_id = data['playlist_id']
+    if (song_ids == None):
+        return make_response({'response': Bad_Response("Missing song_ids argument").Get_Response()}, 500)
+    if (playlist_id == None):
+        return make_response({'response': Bad_Response("Missing playlist_id argument").Get_Response()}, 500)
+    song_count = request.form.get('song_count', type=int)
+    if (song_count == None):
+        song_count = default_song_count
 
-    songs_ids = str(song_ids_query).split(',')
-    songs = request.args.get('song_count', type=int)
-
-    results = recomendation_system(songs_ids, songs)
+    results = recomendation_system(song_ids, song_count)
+    if playlist_id != None:
+        DB.add_tracks_to_playlist(db_instance, playlist_id, results)
     dto = Good_Response(results, len(results))
-    return jsonify({'response': dto.Get_Response()}), 200
+    return jsonify({'response': dto.Get_Response()}, 200)
 
 
 @app.route('/api/my_playlist', methods=["GET"])
 def my_playlist():
-    user_id = request.args.get('id', type=str)
-    user_id = str(user_id).split(',')
-    if (len(user_id) > 1):
-        return make_response({'response': Bad_Response("Bad Request").Get_Response()}, 400)
+    """Enpoint for cold start and playback based playlists"""
+    user_id = request.args.get('user_id', type=int)
+    if (user_id == None):
+        return make_response({'response': Bad_Response("Missing argument \"user_id\"").Get_Response()}, 500)
 
-    service_data = create_custom_playlist(user_id[0])
+    service_data, origin, title = create_custom_playlist(user_id)
+    if (len(service_data) <= 0):
+        return make_response({'response': Bad_Response("There are not enough playbacks").Get_Response()}, 500)
+    elif service_data[0] == -1:
+        return make_response({'response': Bad_Response(f"{title} already exists").Get_Response()}, 500)
+    playlist_id = DB.create_auto_playlist(db_instance,  user_id, title, origin)
+    DB.add_tracks_to_playlist(db_instance, playlist_id, service_data)
+
     dto = Good_Response(service_data, len(service_data))
     return jsonify({'response': dto.Get_Response()})
 
