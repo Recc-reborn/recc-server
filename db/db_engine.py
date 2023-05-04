@@ -11,7 +11,7 @@ load_dotenv()
 def create_instance():
     return mysql.connect(
         user=os.getenv("DB_USER", "recc"),
-        password=os.getenv("DB_PASSWORD", ""),
+        password=os.getenv("DB_PASSWORD", "recc123"),
         host=os.getenv("DB_HOST", "127.0.0.1"),
         port=os.getenv("DB_PORT", "3306"),
         database=os.getenv("DB_DATABASE", "recc")
